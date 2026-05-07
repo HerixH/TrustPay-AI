@@ -1,0 +1,448 @@
+import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
+import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
+import { useEffect, useState } from 'react';
+import {
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { AppHeader } from '../components/AppHeader';
+import { BracketTitle } from '../components/BracketTitle';
+import { GlassCard } from '../components/GlassCard';
+import { GridBackground } from '../components/GridBackground';
+import { LiveHeader } from '../components/LiveHeader';
+import { SparklineBars } from '../components/SparklineBars';
+import type { RootTabParamList } from '../navigation/types';
+import { screenScroll } from '../styles/screenScroll';
+import { COLORS, GRADIENT_RAINBOW, LAYOUT } from '../theme';
+
+type Props = BottomTabScreenProps<RootTabParamList, 'Escrow'>;
+
+const FEATURES = [
+  {
+    key: 'escrow',
+    label: 'Smart escrow',
+    sub: 'Blockchain-based lock & release rules',
+    icon: 'lock-closed-outline' as const,
+  },
+  {
+    key: 'fraud',
+    label: 'TrustPay AI fraud detection',
+    sub: 'Chat + behavior signals before release',
+    icon: 'shield-checkmark-outline' as const,
+  },
+  {
+    key: 'risk',
+    label: 'Risk scoring dashboard',
+    sub: 'Deal-level risk & status visibility',
+    icon: 'stats-chart-outline' as const,
+  },
+  {
+    key: 'voice',
+    label: 'Voice contract confirmation',
+    sub: 'Voice-assisted step checks (e.g. ElevenLabs)',
+    icon: 'mic-outline' as const,
+  },
+  {
+    key: 'disputes',
+    label: 'Dispute resolution',
+    sub: 'Contested releases & mediation workflows',
+    icon: 'scale-outline' as const,
+  },
+] as const;
+
+function formatUsdCompact(n: number) {
+  if (n >= 1e6) return `$${(n / 1e6).toFixed(2)}M`;
+  if (n >= 1e3) return `$${(n / 1e3).toFixed(0)}K`;
+  return `$${n.toFixed(0)}`;
+}
+
+export function EscrowScreen({ navigation }: Props) {
+  const tabBarHeight = useBottomTabBarHeight();
+  const [safetyScore, setSafetyScore] = useState(91);
+  const [fundsLocked, setFundsLocked] = useState(1_850_000);
+  const [msgScanned, setMsgScanned] = useState(12_842);
+  const [activeDeals, setActiveDeals] = useState(428);
+
+  useEffect(() => {
+    const id = setInterval(() => {
+      setSafetyScore((s) =>
+        Math.max(82, Math.min(98, Math.round(s + (Math.random() - 0.5) * 3))),
+      );
+      setFundsLocked((f) =>
+        Math.max(1_200_000, Math.round(f + (Math.random() - 0.5) * 80_000)),
+      );
+      setMsgScanned((m) => m + Math.floor(Math.random() * 15));
+      setActiveDeals((d) =>
+        Math.max(360, Math.round(d + (Math.random() - 0.5) * 6)),
+      );
+    }, 2300);
+    return () => clearInterval(id);
+  }, []);
+
+  return (
+    <View style={styles.screen}>
+      <GridBackground />
+      <SafeAreaView style={styles.safe} edges={['top']}>
+        <ScrollView
+          contentContainerStyle={[
+            screenScroll.content,
+            { paddingBottom: tabBarHeight + LAYOUT.sectionGap },
+          ]}
+          showsVerticalScrollIndicator={false}
+        >
+          <AppHeader
+            onLaunchPress={() => navigation.navigate('Live')}
+            onMenuPress={() => navigation.navigate('Home')}
+          />
+
+          <LiveHeader />
+
+          <View style={styles.titleRow}>
+            <View style={styles.titleFlex}>
+              <BracketTitle title="ESCROW" />
+            </View>
+            <View style={[styles.scorePill, { borderColor: COLORS.success }]}>
+              <Text style={[styles.scorePillVal, { color: COLORS.success }]}>
+                {safetyScore}
+              </Text>
+              <Text style={styles.scorePillHint}>Safety</Text>
+            </View>
+          </View>
+
+          <Text style={styles.body}>
+            TrustPay AI holds funds in escrow while AI reads in-app
+            conversations and behavior to flag scam risk—only then is money
+            released, delayed, or sent into dispute.
+          </Text>
+
+          <GlassCard accent="top" style={styles.block}>
+            <Text style={styles.heroEyebrow}>Snapshot · demo data</Text>
+            <View style={styles.heroRow}>
+              <LinearGradient
+                colors={[...GRADIENT_RAINBOW]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={styles.heroIconRing}
+              >
+                <View style={styles.heroIconInner}>
+                  <Ionicons
+                    name="shield-checkmark"
+                    size={30}
+                    color={COLORS.text}
+                  />
+                </View>
+              </LinearGradient>
+              <View style={styles.heroStats}>
+                <View style={styles.heroMiniRow}>
+                  <View style={styles.miniStat}>
+                    <Text style={styles.miniLab}>Active deals</Text>
+                    <Text style={styles.miniVal}>
+                      {activeDeals.toLocaleString()}
+                    </Text>
+                  </View>
+                  <View style={styles.miniStat}>
+                    <Text style={styles.miniLab}>In escrow</Text>
+                    <Text style={styles.miniVal}>
+                      {formatUsdCompact(fundsLocked)}
+                    </Text>
+                  </View>
+                </View>
+                <View style={styles.heroMiniRow}>
+                  <View style={styles.miniStat}>
+                    <Text style={styles.miniLab}>Messages scanned</Text>
+                    <Text style={styles.miniVal}>
+                      {msgScanned.toLocaleString()}
+                    </Text>
+                  </View>
+                  <View style={styles.miniStat}>
+                    <Text style={styles.miniLab}>Chain</Text>
+                    <Text style={styles.miniVal}>Solana</Text>
+                  </View>
+                </View>
+              </View>
+            </View>
+          </GlassCard>
+
+          <View style={styles.sectionHead}>
+            <Text style={styles.sectionTitle}>Risk index</Text>
+            <View style={styles.badge}>
+              <Ionicons name="chatbubbles-outline" size={14} color={COLORS.live} />
+              <Text style={styles.badgeText}>Chat + behavior</Text>
+            </View>
+          </View>
+          <GlassCard style={styles.block}>
+            <SparklineBars />
+            <Text style={styles.chartCaption}>
+              Simulated scoring from cadence, urgency, and wallet cues.
+            </Text>
+          </GlassCard>
+
+          <Text style={styles.sectionLabel}>Capabilities</Text>
+          <View style={styles.featureGrid}>
+            {FEATURES.map((f) => (
+              <Pressable
+                key={f.key}
+                android_ripple={{ color: 'rgba(255,255,255,0.06)' }}
+                style={({ pressed }) => [
+                  styles.featureCard,
+                  pressed && { opacity: 0.9 },
+                ]}
+              >
+                <LinearGradient
+                  colors={['rgba(34,211,238,0.12)', 'rgba(168,85,247,0.06)']}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
+                  style={styles.featureIconBG}
+                >
+                  <Ionicons name={f.icon} size={20} color={COLORS.text} />
+                </LinearGradient>
+                <View style={styles.featureText}>
+                  <Text style={styles.featureTitle}>{f.label}</Text>
+                  <Text style={styles.featureSub}>{f.sub}</Text>
+                </View>
+                <Ionicons
+                  name="chevron-forward"
+                  size={18}
+                  color={COLORS.textFaint}
+                />
+              </Pressable>
+            ))}
+          </View>
+
+          <Pressable
+            onPress={() => navigation.navigate('Live')}
+            style={styles.feedLink}
+          >
+            <LinearGradient
+              colors={[...GRADIENT_RAINBOW]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              style={styles.feedLinkGrad}
+            >
+              <View style={styles.feedLinkInner}>
+                <Ionicons name="pulse" size={18} color={COLORS.text} />
+                <Text style={styles.feedLinkText}>View activity stream</Text>
+                <Ionicons name="arrow-forward" size={18} color={COLORS.text} />
+              </View>
+            </LinearGradient>
+          </Pressable>
+        </ScrollView>
+      </SafeAreaView>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  screen: {
+    flex: 1,
+    backgroundColor: COLORS.bg,
+  },
+  safe: {
+    flex: 1,
+  },
+  block: {
+    marginBottom: LAYOUT.blockGap,
+  },
+  titleRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+    gap: 12,
+    marginBottom: 8,
+  },
+  titleFlex: {
+    flex: 1,
+    minWidth: 0,
+  },
+  scorePill: {
+    marginTop: 18,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 12,
+    borderWidth: StyleSheet.hairlineWidth,
+    backgroundColor: COLORS.surfaceRaised,
+    alignItems: 'flex-end',
+  },
+  scorePillVal: {
+    fontSize: 17,
+    fontWeight: '800',
+    fontVariant: ['tabular-nums'],
+  },
+  scorePillHint: {
+    color: COLORS.textFaint,
+    fontSize: 10,
+    fontWeight: '600',
+    letterSpacing: 0.5,
+    marginTop: 2,
+    textTransform: 'uppercase',
+  },
+  body: {
+    color: COLORS.textMuted,
+    fontSize: 14,
+    lineHeight: 22,
+    marginBottom: 4,
+  },
+  heroEyebrow: {
+    color: COLORS.textFaint,
+    fontSize: 11,
+    fontWeight: '600',
+    letterSpacing: 0.8,
+    textTransform: 'uppercase',
+    marginBottom: 14,
+  },
+  heroRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 14,
+  },
+  heroIconRing: {
+    padding: 2,
+    borderRadius: 999,
+  },
+  heroIconInner: {
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    backgroundColor: COLORS.surface,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: COLORS.borderSubtle,
+  },
+  heroStats: {
+    flex: 1,
+    minWidth: 0,
+    gap: 12,
+  },
+  heroMiniRow: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  miniStat: {
+    flex: 1,
+  },
+  miniLab: {
+    color: COLORS.textFaint,
+    fontSize: 10,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    fontWeight: '600',
+  },
+  miniVal: {
+    color: COLORS.text,
+    fontSize: 14,
+    fontWeight: '700',
+    marginTop: 4,
+    fontVariant: ['tabular-nums'],
+  },
+  sectionHead: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: 4,
+    marginBottom: 10,
+  },
+  sectionTitle: {
+    color: COLORS.text,
+    fontSize: 15,
+    fontWeight: '700',
+  },
+  badge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 999,
+    backgroundColor: COLORS.surfaceRaised,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: COLORS.borderSubtle,
+  },
+  badgeText: {
+    color: COLORS.textMuted,
+    fontSize: 11,
+    fontWeight: '600',
+  },
+  chartCaption: {
+    marginTop: 12,
+    color: COLORS.textFaint,
+    fontSize: 12,
+    lineHeight: 18,
+  },
+  sectionLabel: {
+    marginTop: 8,
+    color: COLORS.textFaint,
+    fontSize: 11,
+    letterSpacing: 2,
+    textTransform: 'uppercase',
+    fontWeight: '700',
+  },
+  featureGrid: {
+    marginTop: 12,
+    gap: 8,
+  },
+  featureCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 14,
+    paddingVertical: 14,
+    paddingHorizontal: 14,
+    borderRadius: LAYOUT.cardRadius,
+    backgroundColor: COLORS.glass,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: COLORS.glassBorder,
+  },
+  featureIconBG: {
+    width: 42,
+    height: 42,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: COLORS.glassBorder,
+  },
+  featureText: {
+    flex: 1,
+    minWidth: 0,
+  },
+  featureTitle: {
+    color: COLORS.text,
+    fontSize: 14,
+    fontWeight: '700',
+  },
+  featureSub: {
+    color: COLORS.textMuted,
+    fontSize: 12,
+    marginTop: 3,
+    lineHeight: 17,
+  },
+  feedLink: {
+    marginTop: LAYOUT.sectionGap,
+    borderRadius: LAYOUT.cardRadius,
+    overflow: 'hidden',
+  },
+  feedLinkGrad: {
+    padding: 1,
+    borderRadius: LAYOUT.cardRadius,
+  },
+  feedLinkInner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 10,
+    paddingVertical: 14,
+    borderRadius: LAYOUT.cardRadius - 1,
+    backgroundColor: COLORS.surfaceRaised,
+  },
+  feedLinkText: {
+    color: COLORS.text,
+    fontSize: 14,
+    fontWeight: '700',
+  },
+});
