@@ -9,7 +9,8 @@
     "url": "node scripts/print-expo-url.js",
     "android": "expo start --android",
     "ios": "expo start --ios",
-    "web": "expo start --web"
+    "web": "expo start --web",
+    "splash:generate": "powershell -NoProfile -ExecutionPolicy Bypass -File ./scripts/generate-splash.ps1"
   },
   "dependencies": {
     "@expo/metro-runtime": "~6.1.2",
