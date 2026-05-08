@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { StyleSheet, Text, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { COLORS, GRADIENT_RAINBOW } from '../theme';
+import { COLORS } from '../theme';
 import { GlassCard } from './GlassCard';
 
 /** Minimal hero — no illustration assets */
@@ -10,13 +10,13 @@ export function HeroPanel() {
     <GlassCard style={styles.card}>
       <View style={styles.row}>
         <LinearGradient
-          colors={[...GRADIENT_RAINBOW]}
+          colors={['#f5f5f5', '#a1a1aa']}
           start={{ x: 0, y: 1 }}
           end={{ x: 0, y: 0 }}
           style={styles.accentStripe}
         />
         <View style={styles.iconWrap}>
-          <Ionicons name="shield-checkmark" size={26} color={COLORS.live} />
+          <Ionicons name="shield-checkmark" size={26} color="#e5e7eb" />
         </View>
         <View style={styles.copy}>
           <Text style={styles.title}>Escrow with AI oversight</Text>

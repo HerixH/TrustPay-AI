@@ -5,7 +5,6 @@ import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { AppHeader } from '../components/AppHeader';
 import { GlassCard } from '../components/GlassCard';
-import { GridBackground } from '../components/GridBackground';
 import { LiveHeader } from '../components/LiveHeader';
 import type { RootTabParamList } from '../navigation/types';
 import { screenScroll } from '../styles/screenScroll';
@@ -92,19 +91,18 @@ export function FeedScreen({ navigation }: Props) {
   const toneBar = (tone: Tone) => {
     switch (tone) {
       case 'good':
-        return COLORS.success;
+        return '#f4f4f5';
       case 'warn':
-        return '#fbbf24';
+        return '#d4d4d8';
       case 'bad':
-        return COLORS.danger;
+        return '#a1a1aa';
       default:
-        return COLORS.live;
+        return '#71717a';
     }
   };
 
   return (
     <View style={styles.screen}>
-      <GridBackground />
       <SafeAreaView style={styles.safe} edges={['top']}>
         <ScrollView
           contentContainerStyle={[

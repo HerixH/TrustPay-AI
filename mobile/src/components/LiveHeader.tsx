@@ -79,7 +79,7 @@ const styles = StyleSheet.create({
   row: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: 14,
     gap: 10,
   },
   livePill: {
@@ -89,6 +89,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.surfaceRaised,
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: COLORS.borderSubtle,
+    minWidth: 92,
     flexShrink: 0,
   },
   dot: {
@@ -127,9 +128,10 @@ const styles = StyleSheet.create({
   okPill: {
     ...pillBase,
     borderRadius: 10,
-    backgroundColor: 'rgba(52,211,153,0.12)',
+    backgroundColor: 'rgba(255,255,255,0.03)',
     borderWidth: StyleSheet.hairlineWidth,
-    borderColor: 'rgba(52,211,153,0.35)',
+    borderColor: COLORS.borderSubtle,
+    minWidth: 92,
     flexShrink: 0,
   },
   okText: {

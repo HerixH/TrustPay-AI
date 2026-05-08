@@ -30,7 +30,7 @@ function MainTabs() {
           borderTopColor: COLORS.borderSubtle,
           borderTopWidth: StyleSheet.hairlineWidth,
         },
-        tabBarActiveTintColor: COLORS.live,
+        tabBarActiveTintColor: COLORS.text,
         tabBarInactiveTintColor: COLORS.textMuted,
         tabBarLabelStyle: {
           fontSize: 11,

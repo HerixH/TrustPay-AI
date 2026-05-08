@@ -14,7 +14,6 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { AppHeader } from '../components/AppHeader';
 import { BracketTitle } from '../components/BracketTitle';
 import { GlassCard } from '../components/GlassCard';
-import { GridBackground } from '../components/GridBackground';
 import { LiveHeader } from '../components/LiveHeader';
 import { SparklineBars } from '../components/SparklineBars';
 import type { RootTabParamList } from '../navigation/types';
@@ -87,7 +86,6 @@ export function EscrowScreen({ navigation }: Props) {
 
   return (
     <View style={styles.screen}>
-      <GridBackground />
       <SafeAreaView style={styles.safe} edges={['top']}>
         <ScrollView
           contentContainerStyle={[
@@ -117,7 +115,7 @@ export function EscrowScreen({ navigation }: Props) {
 
           <Text style={styles.body}>
             TrustPay AI holds funds in escrow while AI reads in-app
-            conversations and behavior to flag scam risk—only then is money
+            conversations and behavior to flag scam risk. Only then is money
             released, delayed, or sent into dispute.
           </Text>
 
@@ -191,11 +189,11 @@ export function EscrowScreen({ navigation }: Props) {
                 android_ripple={{ color: 'rgba(255,255,255,0.06)' }}
                 style={({ pressed }) => [
                   styles.featureCard,
-                  pressed && { opacity: 0.9 },
+                  pressed && styles.pressed,
                 ]}
               >
                 <LinearGradient
-                  colors={['rgba(34,211,238,0.12)', 'rgba(168,85,247,0.06)']}
+                  colors={['rgba(255,255,255,0.12)', 'rgba(255,255,255,0.04)']}
                   start={{ x: 0, y: 0 }}
                   end={{ x: 1, y: 1 }}
                   style={styles.featureIconBG}
@@ -217,7 +215,7 @@ export function EscrowScreen({ navigation }: Props) {
 
           <Pressable
             onPress={() => navigation.navigate('Live')}
-            style={styles.feedLink}
+            style={({ pressed }) => [styles.feedLink, pressed && styles.pressed]}
           >
             <LinearGradient
               colors={[...GRADIENT_RAINBOW]}
@@ -228,7 +226,6 @@ export function EscrowScreen({ navigation }: Props) {
               <View style={styles.feedLinkInner}>
                 <Ionicons name="pulse" size={18} color={COLORS.text} />
                 <Text style={styles.feedLinkText}>View activity stream</Text>
-                <Ionicons name="arrow-forward" size={18} color={COLORS.text} />
               </View>
             </LinearGradient>
           </Pressable>
@@ -444,5 +441,9 @@ const styles = StyleSheet.create({
     color: COLORS.text,
     fontSize: 14,
     fontWeight: '700',
+  },
+  pressed: {
+    opacity: 0.9,
+    transform: [{ scale: 0.98 }],
   },
 });

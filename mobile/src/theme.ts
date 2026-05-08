@@ -1,39 +1,39 @@
 import { Dimensions } from 'react-native';
 
 export const COLORS = {
-  bg: '#050608',
-  surface: '#0a0c10',
-  surfaceRaised: '#12151c',
-  line: '#1a1f2e',
-  lineBright: '#2a2d3d',
+  bg: '#050505',
+  surface: '#0d0d0f',
+  surfaceRaised: '#161619',
+  line: '#212125',
+  lineBright: '#303036',
   text: '#f4f4f5',
   textMuted: '#71717a',
   textFaint: '#52525b',
-  borderSubtle: '#27272f',
-  success: '#34d399',
-  danger: '#fb7185',
-  live: '#22d3ee',
-  tabBar: '#08090c',
-  glass: 'rgba(12, 14, 20, 0.78)',
+  borderSubtle: '#2b2b31',
+  success: '#f5f5f5',
+  danger: '#a1a1aa',
+  live: '#d4d4d8',
+  tabBar: '#09090b',
+  glass: 'rgba(12, 12, 14, 0.86)',
   glassBorder: 'rgba(255,255,255,0.06)',
 };
 
-/** Rainbow accent stops for borders / CTAs */
+/** Monochrome accent stops for borders / CTAs */
 export const GRADIENT_RAINBOW = [
-  '#22d3ee',
-  '#a78bfa',
-  '#e879f9',
-  '#fb7185',
-  '#fb923c',
-  '#facc15',
+  '#ffffff',
+  '#e5e7eb',
+  '#d4d4d8',
+  '#a1a1aa',
+  '#d4d4d8',
+  '#ffffff',
 ] as const;
 
 export const GRADIENT_CYBER = [
-  '#06b6d4',
-  '#8b5cf6',
-  '#d946ef',
-  '#f43f5e',
-  '#f97316',
+  '#f5f5f5',
+  '#d4d4d8',
+  '#a1a1aa',
+  '#71717a',
+  '#e5e7eb',
 ] as const;
 
 export const windowWidth = Dimensions.get('window').width;

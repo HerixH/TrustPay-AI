@@ -1,21 +1,14 @@
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 import { useEffect, useState } from 'react';
-import {
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { AppHeader } from '../components/AppHeader';
 import { GlassCard } from '../components/GlassCard';
-import { GridBackground } from '../components/GridBackground';
 import { HeroPanel } from '../components/HeroPanel';
 import { LiveHeader } from '../components/LiveHeader';
-import { COLORS, GRADIENT_RAINBOW, LAYOUT } from '../theme';
+import { COLORS, LAYOUT } from '../theme';
 import { screenScroll } from '../styles/screenScroll';
 import type { RootTabParamList } from '../navigation/types';
 
@@ -26,8 +19,10 @@ const HOW_IT_WORKS = [
   'Funds are locked in escrow',
   'Buyer and seller chat in-app',
   'AI analyzes messages and flags risks',
-  'Payment is released—or dispute opens',
+  'Payment is released, or dispute opens',
 ] as const;
+
+const CTA_GRADIENT = ['#ffffff', '#d4d4d8'] as const;
 
 export function LandingScreen({ navigation }: Props) {
   const tabBarHeight = useBottomTabBarHeight();
@@ -39,16 +34,13 @@ export function LandingScreen({ navigation }: Props) {
     const id = setInterval(() => {
       setDeals((d) => Math.max(320, Math.round(d + (Math.random() - 0.5) * 5)));
       setFlags((f) => Math.max(120, Math.round(f + (Math.random() - 0.5) * 4)));
-      setProtectedValue((x) =>
-        +(x + (Math.random() - 0.5) * 0.05).toFixed(2),
-      );
+      setProtectedValue((x) => +(x + (Math.random() - 0.5) * 0.05).toFixed(2));
     }, 2600);
     return () => clearInterval(id);
   }, []);
 
   return (
     <View style={styles.screen}>
-      <GridBackground />
       <SafeAreaView style={styles.safe} edges={['top']}>
         <ScrollView
           contentContainerStyle={[
@@ -58,7 +50,6 @@ export function LandingScreen({ navigation }: Props) {
           showsVerticalScrollIndicator={false}
         >
           <AppHeader
-            showPitchBanner
             onLaunchPress={() => navigation.navigate('Escrow')}
             onMenuPress={() => navigation.navigate('Live')}
           />
@@ -98,9 +89,7 @@ export function LandingScreen({ navigation }: Props) {
                   i === HOW_IT_WORKS.length - 1 && styles.flowRowLast,
                 ]}
               >
-                <Text style={styles.flowIdx}>
-                  {String(i + 1).padStart(2, '0')}
-                </Text>
+                <Text style={styles.flowIdx}>{String(i + 1).padStart(2, '0')}</Text>
                 <Text style={styles.flowText}>{step}</Text>
               </View>
             ))}
@@ -109,7 +98,7 @@ export function LandingScreen({ navigation }: Props) {
           <GlassCard style={styles.block}>
             <Text style={styles.quoteLabel}>Demo scenario</Text>
             <Text style={styles.quote}>
-              Seller sent a suspicious message—why are funds still protected?
+              Seller sent a suspicious message. Why are funds still protected?
             </Text>
             <Text style={styles.quoteHint}>
               AI flags risk; escrow stays locked until rules pass.
@@ -120,7 +109,7 @@ export function LandingScreen({ navigation }: Props) {
             <Text style={styles.kicker}>Trust infrastructure</Text>
             <Text style={styles.footerBrand}>TrustPay AI</Text>
             <Text style={styles.sub}>
-              Security, intelligence, and usability for P2P payments—especially
+              Security, intelligence, and usability for P2P payments, especially
               in emerging markets.
             </Text>
           </View>
@@ -128,25 +117,20 @@ export function LandingScreen({ navigation }: Props) {
           <View style={styles.ctaRow}>
             <Pressable
               onPress={() => navigation.navigate('Escrow')}
-              style={({ pressed }) => [
-                styles.primaryCta,
-                pressed && { opacity: 0.92 },
-              ]}
+              style={({ pressed }) => [styles.primaryCta, pressed && styles.pressed]}
             >
               <LinearGradient
-                colors={[...GRADIENT_RAINBOW]}
+                colors={[...CTA_GRADIENT]}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 0 }}
                 style={styles.primaryCtaGrad}
               >
-                <Text style={styles.primaryCtaText}>
-                  Escrow & risk dashboard
-                </Text>
+                <Text style={styles.primaryCtaText}>Escrow & risk dashboard</Text>
               </LinearGradient>
             </Pressable>
             <Pressable
               onPress={() => navigation.navigate('Live')}
-              style={styles.secondaryCta}
+              style={({ pressed }) => [styles.secondaryCta, pressed && styles.pressed]}
             >
               <Text style={styles.secondaryCtaText}>Activity stream</Text>
             </Pressable>
@@ -160,7 +144,7 @@ export function LandingScreen({ navigation }: Props) {
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
-    backgroundColor: COLORS.bg,
+    backgroundColor: '#020202',
   },
   safe: {
     flex: 1,
@@ -169,10 +153,10 @@ const styles = StyleSheet.create({
     marginBottom: LAYOUT.blockGap,
   },
   team: {
-    color: COLORS.textFaint,
+    color: '#737373',
     fontSize: 11,
     fontWeight: '600',
-    letterSpacing: 0.6,
+    letterSpacing: 0.8,
     textTransform: 'uppercase',
     marginBottom: LAYOUT.blockGap,
   },
@@ -186,7 +170,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   metricLab: {
-    color: COLORS.textFaint,
+    color: '#737373',
     fontSize: 10,
     fontWeight: '600',
     letterSpacing: 0.5,
@@ -194,7 +178,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   metricVal: {
-    color: COLORS.text,
+    color: '#f5f5f5',
     fontSize: 17,
     fontWeight: '700',
     marginTop: 8,
@@ -202,11 +186,11 @@ const styles = StyleSheet.create({
   },
   metricDivider: {
     width: StyleSheet.hairlineWidth,
-    backgroundColor: COLORS.borderSubtle,
+    backgroundColor: '#2a2a2a',
     marginVertical: 2,
   },
   flowTitle: {
-    color: COLORS.text,
+    color: '#f5f5f5',
     fontSize: 12,
     fontWeight: '700',
     letterSpacing: 1.5,
@@ -219,14 +203,14 @@ const styles = StyleSheet.create({
     gap: 12,
     paddingVertical: 12,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: COLORS.borderSubtle,
+    borderBottomColor: '#292929',
   },
   flowRowLast: {
     borderBottomWidth: 0,
     paddingBottom: 2,
   },
   flowIdx: {
-    color: COLORS.live,
+    color: '#e5e5e5',
     fontSize: 12,
     fontWeight: '700',
     minWidth: 26,
@@ -234,12 +218,12 @@ const styles = StyleSheet.create({
   },
   flowText: {
     flex: 1,
-    color: COLORS.textMuted,
+    color: '#a3a3a3',
     fontSize: 14,
     lineHeight: 21,
   },
   quoteLabel: {
-    color: COLORS.textFaint,
+    color: '#737373',
     fontSize: 11,
     fontWeight: '700',
     letterSpacing: 1,
@@ -247,14 +231,14 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   quote: {
-    color: COLORS.text,
+    color: '#f5f5f5',
     fontSize: 15,
     lineHeight: 23,
     fontWeight: '600',
   },
   quoteHint: {
     marginTop: 10,
-    color: COLORS.textMuted,
+    color: '#a3a3a3',
     fontSize: 13,
     lineHeight: 19,
   },
@@ -263,26 +247,30 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   kicker: {
-    color: COLORS.textMuted,
+    color: '#a3a3a3',
     fontSize: 11,
     letterSpacing: 1.2,
     textTransform: 'uppercase',
     fontWeight: '600',
   },
   footerBrand: {
-    color: COLORS.text,
+    color: '#fafafa',
     fontSize: 28,
     fontWeight: '700',
     letterSpacing: 0.2,
   },
   sub: {
-    color: COLORS.textMuted,
+    color: '#a3a3a3',
     fontSize: 14,
     lineHeight: 22,
   },
   ctaRow: {
     marginTop: LAYOUT.sectionGap,
     gap: 10,
+  },
+  pressed: {
+    opacity: 0.92,
+    transform: [{ scale: 0.98 }],
   },
   primaryCta: {
     borderRadius: LAYOUT.cardRadius,
@@ -294,21 +282,28 @@ const styles = StyleSheet.create({
     borderRadius: LAYOUT.cardRadius,
   },
   primaryCtaText: {
-    color: COLORS.text,
+    color: '#090909',
     fontSize: 15,
-    fontWeight: '700',
+    fontWeight: '800',
     letterSpacing: 0.2,
     paddingHorizontal: 16,
     textAlign: 'center',
   },
   secondaryCta: {
-    alignSelf: 'flex-start',
-    paddingVertical: 8,
-    paddingHorizontal: 2,
+    minHeight: 42,
+    borderRadius: LAYOUT.cardRadius,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: '#303030',
+    backgroundColor: 'rgba(255,255,255,0.02)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 14,
   },
   secondaryCtaText: {
-    color: COLORS.textMuted,
+    color: '#a3a3a3',
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '700',
+    letterSpacing: 0.4,
+    textTransform: 'uppercase',
   },
 });

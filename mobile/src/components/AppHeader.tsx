@@ -1,10 +1,11 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { COLORS, GRADIENT_RAINBOW, LAYOUT } from '../theme';
+import { COLORS, LAYOUT } from '../theme';
 import { LogoMark } from './LogoMark';
 
 /** Toolbar height — use for vertical alignment (iOS-style 44pt) */
 const TOOLBAR_H = 44;
+const CTA_GRADIENT = ['#f5f5f5', '#cfcfd4'] as const;
 
 type Props = {
   showPitchBanner?: boolean;
@@ -54,11 +55,15 @@ export function AppHeader({
               <View style={styles.menuLine} />
             </View>
           </Pressable>
-          <Pressable onPress={onLaunchPress} accessibilityRole="button">
+          <Pressable
+            onPress={onLaunchPress}
+            style={({ pressed }) => pressed && styles.pressDown}
+            accessibilityRole="button"
+          >
             <LinearGradient
-              colors={[...GRADIENT_RAINBOW]}
+              colors={[...CTA_GRADIENT]}
               start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
+              end={{ x: 1, y: 0 }}
               style={styles.ctaBorder}
             >
               <View style={styles.ctaInner}>
@@ -74,8 +79,8 @@ export function AppHeader({
 
 const styles = StyleSheet.create({
   container: {
-    gap: 12,
-    marginBottom: 4,
+    gap: 10,
+    marginBottom: 6,
   },
   banner: {
     paddingVertical: 12,
@@ -128,17 +133,26 @@ const styles = StyleSheet.create({
   rightCluster: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
+    gap: 8,
     flexShrink: 0,
   },
   iconButton: {
-    width: TOOLBAR_H,
-    height: TOOLBAR_H,
+    width: 40,
+    height: 40,
+    borderRadius: 10,
     alignItems: 'center',
     justifyContent: 'center',
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: COLORS.borderSubtle,
+    backgroundColor: 'rgba(255,255,255,0.02)',
   },
   iconButtonPressed: {
-    opacity: 0.7,
+    opacity: 0.82,
+    transform: [{ scale: 0.95 }],
+  },
+  pressDown: {
+    opacity: 0.9,
+    transform: [{ scale: 0.97 }],
   },
   menuLines: {
     gap: 5,
@@ -156,9 +170,9 @@ const styles = StyleSheet.create({
     padding: 1,
   },
   ctaInner: {
-    minHeight: 36,
+    minHeight: 38,
     paddingHorizontal: 12,
-    paddingVertical: 8,
+    paddingVertical: 7,
     borderRadius: 9,
     backgroundColor: COLORS.bg,
     alignItems: 'center',
@@ -168,7 +182,7 @@ const styles = StyleSheet.create({
     color: COLORS.text,
     fontSize: 11,
     fontWeight: '700',
-    letterSpacing: 0.6,
+    letterSpacing: 0.8,
     textTransform: 'uppercase',
   },
 });
