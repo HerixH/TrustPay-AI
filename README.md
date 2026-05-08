@@ -2,7 +2,22 @@
 
 **Team Chain Minds** — Ropafadzo Tambara · Surajo Hussain · Diana Ndlovu · Herix Hangandu  
 
-AI‑powered smart escrow and fraud detection for peer‑to‑peer payments—reducing scams and protecting buyers and sellers, with emphasis on emerging markets.
+## Problem
+
+P2P payments often lack a simple trust layer: freelancers get ghosted, buyers lose money to scams, and neither side has strong protection during a deal.
+
+## Solution
+
+TrustPay AI combines:
+
+- **Smart escrow** — funds stay locked until conditions for release are met.
+- **AI fraud detection** — in-app conversations and behavioral signals are analyzed to surface scam risk before money moves.
+
+Together, these aim to act as **trust infrastructure** for digital payments—not only a single product feature.
+
+---
+
+## Stack overview
 
 TrustPay AI is an **end‑to‑end hackathon/demo stack** that combines:
 
@@ -214,12 +229,12 @@ Pure Solana helpers are covered under **`src/solana/__tests__/`** (PDA parity wi
 
 ---
 
-## License
+## Contributing
 
-Hackathon / educational use unless you declare otherwise elsewhere.
+When the codebase is present: open issues for bugs and ideas, use pull requests for changes, and keep escrow and fraud-handling paths reviewed for safety and compliance.
 
 ---
 
-## Contributing
+## License
 
-Open issues for bugs and ideas; use pull requests for changes; keep escrow and fraud‑handling paths reviewed for safety and compliance.
+Hackathon / educational use unless you declare otherwise elsewhere.
