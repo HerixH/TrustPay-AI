@@ -103,7 +103,9 @@ export function EscrowMarketingScreen({ navigation }: Props) {
         >
           <AppHeader
             onLaunchPress={() => navigation.navigate('Live')}
-            onMenuPress={() => navigation.navigate('Landing')}
+            onMenuPress={() =>
+              navigation.navigate('Home', { screen: 'Landing' })
+            }
           />
 
           <LiveHeader />

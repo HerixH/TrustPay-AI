@@ -1,3 +1,4 @@
+import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
 import { useEffect, useState } from "react";
 import {
   Alert,
@@ -8,14 +9,18 @@ import {
   TextInput,
   View,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
-import type { RootStackParamList } from "../navigation";
+import type { HomeStackParamList } from "../navigation/types";
 import { createDeal } from "../api";
 import { useWallet } from "../wallet/WalletContext";
+import { COLORS, LAYOUT } from "../theme";
 
-type Props = NativeStackScreenProps<RootStackParamList, "DealCreate">;
+type Props = NativeStackScreenProps<HomeStackParamList, "DealCreate">;
 
 export function DealCreateScreen({ navigation }: Props) {
+  const insets = useSafeAreaInsets();
+  const tabBarHeight = useBottomTabBarHeight();
   const wallet = useWallet();
   const [buyer, setBuyer] = useState("");
   const [seller, setSeller] = useState("");
@@ -56,7 +61,14 @@ export function DealCreateScreen({ navigation }: Props) {
   };
 
   return (
-    <ScrollView contentContainerStyle={styles.wrap}>
+    <ScrollView
+      contentContainerStyle={[
+        styles.wrap,
+        {
+          paddingBottom: Math.max(40, insets.bottom + 24) + tabBarHeight,
+        },
+      ]}
+    >
       <Text style={styles.title}>Create deal</Text>
       <Text style={styles.hint}>
         Use devnet wallet pubkeys. Amount is in lamports (1 SOL = 1e9).
@@ -91,6 +103,7 @@ function Field(props: {
         onChangeText={props.onChangeText}
         autoCapitalize="none"
         autoCorrect={false}
+        placeholderTextColor={COLORS.textFaint}
         style={styles.input}
       />
     </View>
@@ -98,25 +111,36 @@ function Field(props: {
 }
 
 const styles = StyleSheet.create({
-  wrap: { padding: 20, paddingTop: 48, paddingBottom: 40, backgroundColor: "#f8fafc" },
-  title: { fontSize: 22, fontWeight: "700", color: "#0f172a" },
-  hint: { marginTop: 8, color: "#475569", lineHeight: 20 },
-  label: { fontSize: 12, fontWeight: "600", color: "#475569", marginBottom: 4 },
+  wrap: {
+    paddingHorizontal: LAYOUT.screenPadding,
+    paddingTop: 48,
+    paddingBottom: 40,
+    backgroundColor: COLORS.bg,
+  },
+  title: { fontSize: 22, fontWeight: "700", color: COLORS.text },
+  hint: { marginTop: 8, color: COLORS.textMuted, lineHeight: 22 },
+  label: {
+    fontSize: 12,
+    fontWeight: "600",
+    color: COLORS.textMuted,
+    marginBottom: 4,
+  },
   input: {
     borderWidth: 1,
-    borderColor: "#cbd5e1",
-    borderRadius: 10,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    backgroundColor: "#fff",
-    fontSize: 14,
+    borderColor: COLORS.borderSubtle,
+    borderRadius: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    backgroundColor: COLORS.surfaceRaised,
+    fontSize: 15,
+    color: COLORS.text,
   },
   btn: {
     marginTop: 22,
-    backgroundColor: "#0ea5e9",
+    backgroundColor: COLORS.accentPurple,
     paddingVertical: 14,
-    borderRadius: 10,
+    borderRadius: 12,
     alignItems: "center",
   },
-  btnTxt: { color: "#fff", fontWeight: "700" },
+  btnTxt: { color: COLORS.textOnGradient, fontWeight: "700", fontSize: 15 },
 });

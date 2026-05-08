@@ -1,12 +1,12 @@
 import type { ReactNode } from 'react';
-import { StyleSheet, View, ViewStyle } from 'react-native';
+import { StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { COLORS, GRADIENT_CTA, LAYOUT } from '../theme';
 
 type Props = {
   children: ReactNode;
-  style?: ViewStyle;
-  innerStyle?: ViewStyle;
+  style?: StyleProp<ViewStyle>;
+  innerStyle?: StyleProp<ViewStyle>;
   accent?: 'top' | 'none';
 };
 

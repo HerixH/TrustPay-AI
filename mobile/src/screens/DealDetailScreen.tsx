@@ -1,3 +1,4 @@
+import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
 import { useCallback, useEffect, useState } from "react";
 import {
   ActivityIndicator,
@@ -14,6 +15,7 @@ import {
 } from "react-native";
 import { PublicKey } from "@solana/web3.js";
 import { Audio } from "expo-av";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import {
   analyzeDeal,
@@ -23,7 +25,7 @@ import {
   voiceContract,
   type DealBundle,
 } from "../api";
-import type { RootStackParamList } from "../navigation";
+import type { HomeStackParamList } from "../navigation/types";
 import {
   runDeposit,
   runInitialize,
@@ -33,17 +35,20 @@ import {
 } from "../solana/escrowFlow";
 import { readEscrowStatus, escrowStatusLabel } from "../solana/parse";
 import { useWallet } from "../wallet/WalletContext";
+import { COLORS, LAYOUT } from "../theme";
 
-type Props = NativeStackScreenProps<RootStackParamList, "DealDetail">;
+type Props = NativeStackScreenProps<HomeStackParamList, "DealDetail">;
 
 function tierColor(tier: string | undefined) {
   const t = (tier || "").toLowerCase();
-  if (t === "high") return "#b91c1c";
-  if (t === "medium") return "#b45309";
-  return "#15803d";
+  if (t === "high") return COLORS.danger;
+  if (t === "medium") return COLORS.warn;
+  return COLORS.success;
 }
 
 export function DealDetailScreen({ route }: Props) {
+  const insets = useSafeAreaInsets();
+  const tabBarHeight = useBottomTabBarHeight();
   const { dealId } = route.params;
   const wallet = useWallet();
   const [bundle, setBundle] = useState<DealBundle | null>(null);
@@ -158,15 +163,15 @@ export function DealDetailScreen({ route }: Props) {
   if (!bundle && busy) {
     return (
       <View style={styles.centered}>
-        <ActivityIndicator />
+        <ActivityIndicator color={COLORS.accentMint} />
       </View>
     );
   }
 
   if (!bundle) {
     return (
-      <View style={styles.centered}>
-        <Text>{err || "Failed to load deal."}</Text>
+      <View style={[styles.centered, { backgroundColor: COLORS.bg }]}>
+        <Text style={styles.mutedCenter}>{err || "Failed to load deal."}</Text>
         <Pressable style={styles.secondary} onPress={() => void load()}>
           <Text style={styles.secondaryTxt}>Retry</Text>
         </Pressable>
@@ -199,7 +204,7 @@ export function DealDetailScreen({ route }: Props) {
   const canResolve = !!wallet.arbiter && arbKp === arbAddr;
 
   return (
-    <View style={{ flex: 1, backgroundColor: "#f8fafc" }}>
+    <View style={{ flex: 1, backgroundColor: COLORS.bg }}>
       <FlatList
         ListHeaderComponent={
           <View style={{ paddingHorizontal: 16, paddingTop: 16 }}>
@@ -365,7 +370,7 @@ export function DealDetailScreen({ route }: Props) {
               </Pressable>
 
               {chainBusy ? (
-                <ActivityIndicator style={{ marginTop: 10 }} />
+                <ActivityIndicator style={{ marginTop: 10 }} color={COLORS.accentMint} />
               ) : null}
             </View>
 
@@ -402,7 +407,7 @@ export function DealDetailScreen({ route }: Props) {
                 value={msg}
                 onChangeText={setMsg}
                 placeholder="Try: “pay outside the platform with gift cards”"
-                placeholderTextColor="#94a3b8"
+                placeholderTextColor={COLORS.textFaint}
                 multiline
               />
               <Pressable
@@ -414,12 +419,16 @@ export function DealDetailScreen({ route }: Props) {
               </Pressable>
             </View>
             {err ? <Text style={styles.error}>{err}</Text> : null}
-            {busy ? <ActivityIndicator style={{ marginVertical: 8 }} /> : null}
+            {busy ? (
+              <ActivityIndicator style={{ marginVertical: 8 }} color={COLORS.accentMint} />
+            ) : null}
           </View>
         }
         data={messages}
         keyExtractor={(m) => String(m.id)}
-        contentContainerStyle={{ paddingBottom: 32 }}
+        contentContainerStyle={{
+          paddingBottom: Math.max(32, insets.bottom + 16) + tabBarHeight,
+        }}
         renderItem={({ item }) => (
           <View style={styles.bubble}>
             <Text style={styles.bubbleSender}>{item.sender}</Text>
@@ -432,92 +441,93 @@ export function DealDetailScreen({ route }: Props) {
 }
 
 const styles = StyleSheet.create({
-  centered: { flex: 1, alignItems: "center", justifyContent: "center" },
-  title: { fontSize: 20, fontWeight: "700", color: "#0f172a" },
-  meta: { marginTop: 4, color: "#475569", fontSize: 12 },
+  centered: { flex: 1, alignItems: "center", justifyContent: "center", padding: 24 },
+  mutedCenter: { color: COLORS.textMuted, textAlign: "center", marginBottom: 8 },
+  title: { fontSize: 20, fontWeight: "700", color: COLORS.text },
+  meta: { marginTop: 4, color: COLORS.textMuted, fontSize: 12 },
   riskRow: {
     marginTop: 14,
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
   },
-  riskLabel: { fontWeight: "600", color: "#334155" },
+  riskLabel: { fontWeight: "600", color: COLORS.textMuted },
   riskValue: { fontWeight: "800", fontSize: 16 },
-  rationale: { marginTop: 6, color: "#334155", lineHeight: 20 },
+  rationale: { marginTop: 6, color: COLORS.textMuted, lineHeight: 20 },
   rowBetween: {
     marginTop: 16,
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
   },
-  label: { fontWeight: "600", color: "#475569" },
+  label: { fontWeight: "600", color: COLORS.textMuted },
   solBox: {
     marginTop: 12,
     padding: 12,
-    backgroundColor: "#fff",
-    borderRadius: 12,
+    backgroundColor: COLORS.surfaceRaised,
+    borderRadius: LAYOUT.cardRadius,
     borderWidth: 1,
-    borderColor: "#e2e8f0",
+    borderColor: COLORS.borderSubtle,
   },
-  solTitle: { fontWeight: "700", marginBottom: 6, color: "#0f172a" },
+  solTitle: { fontWeight: "700", marginBottom: 6, color: COLORS.text },
   mono: {
     fontFamily: Platform.select({ ios: "Menlo", android: "monospace", default: "monospace" }),
     fontSize: 11,
-    color: "#0f172a",
+    color: COLORS.text,
   },
   linkRow: { flexDirection: "row", marginTop: 8 },
-  link: { color: "#0369a1", fontWeight: "600" },
+  link: { color: COLORS.accentMint, fontWeight: "600" },
   smallChain: {
     marginTop: 8,
     fontSize: 10,
-    color: "#475569",
+    color: COLORS.textFaint,
     fontFamily: Platform.select({ ios: "Menlo", android: "monospace", default: "monospace" }),
   },
   onChainBox: {
     marginTop: 14,
     padding: 12,
-    backgroundColor: "#f1f5f9",
-    borderRadius: 12,
+    backgroundColor: COLORS.surfaceMuted,
+    borderRadius: LAYOUT.cardRadius,
     borderWidth: 1,
-    borderColor: "#cbd5e1",
+    borderColor: COLORS.borderSubtle,
     gap: 8,
   },
-  onChainMeta: { fontSize: 12, color: "#475569", marginBottom: 4 },
-  warn: { fontSize: 12, color: "#b45309", marginBottom: 6 },
+  onChainMeta: { fontSize: 12, color: COLORS.textMuted, marginBottom: 4 },
+  warn: { fontSize: 12, color: COLORS.warn, marginBottom: 6 },
   ocBtn: {
-    backgroundColor: "#0f766e",
+    backgroundColor: COLORS.accentPurple,
     paddingVertical: 10,
-    borderRadius: 8,
+    borderRadius: 10,
     alignItems: "center",
   },
-  ocBtnTxt: { color: "#fff", fontWeight: "700", fontSize: 13 },
+  ocBtnTxt: { color: COLORS.textOnGradient, fontWeight: "700", fontSize: 13 },
   ocBtnOutline: {
     borderWidth: 1,
-    borderColor: "#0f766e",
+    borderColor: COLORS.accentMint,
     paddingVertical: 10,
-    borderRadius: 8,
+    borderRadius: 10,
     alignItems: "center",
-    backgroundColor: "#fff",
+    backgroundColor: COLORS.surfaceRaised,
   },
-  ocBtnTxtB: { color: "#0f766e", fontWeight: "700", fontSize: 13 },
+  ocBtnTxtB: { color: COLORS.accentMint, fontWeight: "700", fontSize: 13 },
   actions: { marginTop: 14, gap: 10 },
   primary: {
-    backgroundColor: "#0ea5e9",
+    backgroundColor: COLORS.accentPurple,
     paddingVertical: 12,
-    borderRadius: 10,
+    borderRadius: 12,
     alignItems: "center",
   },
-  primaryTxt: { color: "#fff", fontWeight: "700" },
+  primaryTxt: { color: COLORS.textOnGradient, fontWeight: "700" },
   outline: {
     borderWidth: 1,
-    borderColor: "#0369a1",
+    borderColor: COLORS.accentMint,
     paddingVertical: 12,
-    borderRadius: 10,
+    borderRadius: 12,
     alignItems: "center",
-    backgroundColor: "#fff",
+    backgroundColor: COLORS.surfaceRaised,
   },
-  outlineTxt: { color: "#0369a1", fontWeight: "700" },
-  chatTitle: { marginTop: 20, fontWeight: "700", fontSize: 16, color: "#0f172a" },
+  outlineTxt: { color: COLORS.accentMint, fontWeight: "700" },
+  chatTitle: { marginTop: 20, fontWeight: "700", fontSize: 16, color: COLORS.text },
   senderRow: {
     marginTop: 8,
     flexDirection: "row",
@@ -527,49 +537,52 @@ const styles = StyleSheet.create({
   senderInput: {
     flex: 1,
     borderWidth: 1,
-    borderColor: "#cbd5e1",
-    borderRadius: 8,
+    borderColor: COLORS.borderSubtle,
+    borderRadius: 10,
     paddingHorizontal: 10,
     paddingVertical: 8,
-    backgroundColor: "#fff",
+    backgroundColor: COLORS.surfaceRaised,
+    color: COLORS.text,
   },
   composer: { marginTop: 8, gap: 8 },
   msgInput: {
     minHeight: 64,
     borderWidth: 1,
-    borderColor: "#cbd5e1",
+    borderColor: COLORS.borderSubtle,
     borderRadius: 10,
     padding: 10,
-    backgroundColor: "#fff",
+    backgroundColor: COLORS.surfaceRaised,
     textAlignVertical: "top",
+    color: COLORS.text,
   },
   send: {
     alignSelf: "flex-end",
-    backgroundColor: "#1e293b",
+    backgroundColor: COLORS.accentMint,
     paddingHorizontal: 18,
     paddingVertical: 10,
-    borderRadius: 8,
+    borderRadius: 10,
   },
-  sendTxt: { color: "#fff", fontWeight: "700" },
+  sendTxt: { color: COLORS.bg, fontWeight: "800" },
   bubble: {
     marginHorizontal: 16,
     marginTop: 10,
     padding: 12,
-    borderRadius: 12,
-    backgroundColor: "#fff",
+    borderRadius: LAYOUT.cardRadius,
+    backgroundColor: COLORS.surfaceRaised,
     borderWidth: 1,
-    borderColor: "#e2e8f0",
+    borderColor: COLORS.borderSubtle,
   },
-  bubbleSender: { fontWeight: "700", color: "#0f172a", marginBottom: 4 },
-  bubbleBody: { color: "#334155", lineHeight: 20 },
-  error: { color: "#b91c1c", marginTop: 8 },
+  bubbleSender: { fontWeight: "700", color: COLORS.text, marginBottom: 4 },
+  bubbleBody: { color: COLORS.textMuted, lineHeight: 20 },
+  error: { color: COLORS.danger, marginTop: 8 },
   secondary: {
     marginTop: 12,
     borderWidth: 1,
-    borderColor: "#cbd5e1",
+    borderColor: COLORS.borderSubtle,
     paddingHorizontal: 16,
     paddingVertical: 10,
-    borderRadius: 10,
+    borderRadius: 12,
+    backgroundColor: COLORS.surfaceRaised,
   },
-  secondaryTxt: { fontWeight: "600" },
+  secondaryTxt: { fontWeight: "600", color: COLORS.textMuted },
 });

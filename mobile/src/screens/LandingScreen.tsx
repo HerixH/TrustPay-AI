@@ -12,6 +12,7 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { AppFooter } from '../components/AppFooter';
 import { GlassCard } from '../components/GlassCard';
 import { HeroPanel } from '../components/HeroPanel';
 import { HomeSearchRow } from '../components/HomeSearchRow';
@@ -19,12 +20,11 @@ import { LiveHeader } from '../components/LiveHeader';
 import { PrimaryGradientButton } from '../components/PrimaryGradientButton';
 import { COLORS, LAYOUT } from '../theme';
 import { screenScroll } from '../styles/screenScroll';
-import type { RootStackParamList } from '../navigation';
-import type { RootTabParamList } from '../navigation/types';
+import type { HomeStackParamList, RootTabParamList } from '../navigation/types';
 
 type Props = CompositeScreenProps<
-  BottomTabScreenProps<RootTabParamList, 'Landing'>,
-  NativeStackScreenProps<RootStackParamList>
+  NativeStackScreenProps<HomeStackParamList, 'Landing'>,
+  BottomTabScreenProps<RootTabParamList>
 >;
 
 const HOW_IT_WORKS = [
@@ -161,14 +161,7 @@ export function LandingScreen({ navigation }: Props) {
             </Text>
           </GlassCard>
 
-          <View style={styles.footerBlock}>
-            <Text style={styles.kicker}>Trust infrastructure</Text>
-            <Text style={styles.footerBrand}>TrustPay AI</Text>
-            <Text style={styles.sub}>
-              Security, intelligence, and usability for P2P payments, especially
-              in emerging markets.
-            </Text>
-          </View>
+          <AppFooter />
 
           <View style={styles.ctaRow}>
             <Pressable
@@ -324,28 +317,6 @@ const styles = StyleSheet.create({
     color: COLORS.textMuted,
     fontSize: 13,
     lineHeight: 19,
-  },
-  footerBlock: {
-    marginTop: LAYOUT.sectionGap,
-    gap: 8,
-  },
-  kicker: {
-    color: COLORS.textMuted,
-    fontSize: 11,
-    letterSpacing: 1.2,
-    textTransform: 'uppercase',
-    fontWeight: '600',
-  },
-  footerBrand: {
-    color: COLORS.text,
-    fontSize: 28,
-    fontWeight: '700',
-    letterSpacing: 0.2,
-  },
-  sub: {
-    color: COLORS.textMuted,
-    fontSize: 14,
-    lineHeight: 22,
   },
   ctaRow: {
     marginTop: LAYOUT.sectionGap,

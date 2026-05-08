@@ -55,7 +55,7 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   label: {
-    color: COLORS.bg,
+    color: COLORS.textOnGradient,
     fontSize: 15,
     fontWeight: '800',
     letterSpacing: 0.2,

@@ -1,1 +1,4 @@
-export type { RootStackParamList, RootTabParamList } from "./navigation/types";
+export type {
+  HomeStackParamList,
+  RootTabParamList,
+} from "./navigation/types";

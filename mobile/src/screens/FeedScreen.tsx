@@ -76,7 +76,7 @@ function toneAccent(tone: Tone): string {
     case 'good':
       return COLORS.text;
     case 'warn':
-      return '#eab308';
+      return COLORS.warn;
     case 'bad':
       return COLORS.danger;
     default:
@@ -116,7 +116,9 @@ export function FeedScreen({ navigation }: Props) {
         >
           <AppHeader
             onLaunchPress={() => navigation.navigate('Escrow')}
-            onMenuPress={() => navigation.navigate('Landing')}
+            onMenuPress={() =>
+              navigation.navigate('Home', { screen: 'Landing' })
+            }
           />
           <LiveHeader />
 

@@ -1,57 +1,63 @@
 import { Dimensions } from 'react-native';
 
+/** Solana-inspired palette: deep violet base, brand purple + mint accents */
 export const COLORS = {
-  bg: '#121212',
-  surface: '#1E1E1E',
-  surfaceRaised: '#252525',
-  surfaceMuted: '#2C2C2E',
-  line: '#2d2d30',
-  lineBright: '#3f3f46',
-  text: '#fafafa',
-  textMuted: '#a1a1aa',
-  textFaint: '#71717a',
-  borderSubtle: '#333336',
-  /** Primary CTA accent (teal → blue) */
-  accentTeal: '#14b8a6',
-  accentBlue: '#3b82f6',
-  success: '#34d399',
-  danger: '#f87171',
-  live: '#d4d4d8',
-  tabBar: '#1a1a1c',
-  glass: 'rgba(30, 30, 30, 0.94)',
+  bg: '#0b0820',
+  surface: '#15102a',
+  surfaceRaised: '#1e1840',
+  surfaceMuted: '#2a2150',
+  line: '#3d2f6d',
+  lineBright: '#5b4a9a',
+  text: '#f5f3ff',
+  textMuted: '#a5a0c8',
+  textFaint: '#6b6594',
+  borderSubtle: '#352866',
+  /** Brand mint (Solana green) — used in gradients & tab chrome */
+  accentTeal: '#14f195',
+  /** Brand purple — fills, links, focus */
+  accentBlue: '#9945ff',
+  accentPurple: '#9945ff',
+  accentMint: '#14f195',
+  textOnGradient: '#ffffff',
+  success: '#14f195',
+  warn: '#eab308',
+  danger: '#fb7185',
+  live: '#c4b5fd',
+  tabBar: '#120e24',
+  glass: 'rgba(21, 16, 42, 0.94)',
   glassBorder: 'rgba(255,255,255,0.08)',
-  mapLand: '#2a2a2e',
-  mapRoad: 'rgba(255,255,255,0.06)',
+  mapLand: '#1a1535',
+  mapRoad: 'rgba(153, 69, 255, 0.12)',
 };
 
-/** Teal → blue for primary actions (matches reference CTA) */
-export const GRADIENT_CTA = ['#14b8a6', '#2563eb'] as const;
+/** Solana-style CTA: purple → mint */
+export const GRADIENT_CTA = ['#9945ff', '#14f195'] as const;
 
-/** Risk index bars: dark base → bright cap (flat bottom, rounded top) */
+/** Risk index bars: violet base → mint highlight */
 export const GRADIENT_BAR_RISK_INDEX = [
-  '#333333',
-  '#525252',
-  '#a3a3a3',
-  '#f5f5f5',
-  '#ffffff',
+  '#1e1840',
+  '#3d2f6d',
+  '#6b21a8',
+  '#9945ff',
+  '#14f195',
 ] as const;
 
-/** Secondary chrome gradients */
+/** Decorative chrome — cool purple slate */
 export const GRADIENT_RAINBOW = [
-  '#ffffff',
-  '#e5e7eb',
-  '#d4d4d8',
-  '#a1a1aa',
-  '#d4d4d8',
-  '#ffffff',
+  '#f5f3ff',
+  '#ddd6fe',
+  '#c4b5fd',
+  '#a78bfa',
+  '#c4b5fd',
+  '#f5f3ff',
 ] as const;
 
 export const GRADIENT_CYBER = [
-  '#f5f5f5',
-  '#d4d4d8',
-  '#a1a1aa',
-  '#71717a',
-  '#e5e7eb',
+  '#ede9fe',
+  '#ddd6fe',
+  '#a78bfa',
+  '#7c3aed',
+  '#ddd6fe',
 ] as const;
 
 export const windowWidth = Dimensions.get('window').width;
