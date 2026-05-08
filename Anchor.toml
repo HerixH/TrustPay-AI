@@ -1,0 +1,22 @@
+[toolchain]
+channel = "1.79.0"
+
+[features]
+resolution = true
+skip-lint = false
+
+[programs.localnet]
+trustpay_escrow = "Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFDSn"
+
+[programs.devnet]
+trustpay_escrow = "Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFDSn"
+
+[registry]
+url = "https://api.apr.dev"
+
+[provider]
+cluster = "Devnet"
+wallet = "~/.config/solana/id.json"
+
+[scripts]
+test = "cargo test -p trustpay-escrow"
