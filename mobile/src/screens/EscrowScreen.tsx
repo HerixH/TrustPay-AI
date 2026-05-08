@@ -18,7 +18,7 @@ import { LiveHeader } from '../components/LiveHeader';
 import { SparklineBars } from '../components/SparklineBars';
 import type { RootTabParamList } from '../navigation/types';
 import { screenScroll } from '../styles/screenScroll';
-import { COLORS, GRADIENT_RAINBOW, LAYOUT } from '../theme';
+import { COLORS, GRADIENT_CTA, LAYOUT } from '../theme';
 
 type Props = BottomTabScreenProps<RootTabParamList, 'Escrow'>;
 
@@ -61,6 +61,11 @@ function formatUsdCompact(n: number) {
   return `$${n.toFixed(0)}`;
 }
 
+/** Thousands shown with space (dashboard-style) */
+function formatCountSpaced(n: number) {
+  return n.toLocaleString('en-US').replace(/,/g, ' ');
+}
+
 export function EscrowScreen({ navigation }: Props) {
   const tabBarHeight = useBottomTabBarHeight();
   const [safetyScore, setSafetyScore] = useState(91);
@@ -90,7 +95,9 @@ export function EscrowScreen({ navigation }: Props) {
         <ScrollView
           contentContainerStyle={[
             screenScroll.content,
-            { paddingBottom: tabBarHeight + LAYOUT.sectionGap },
+            {
+              paddingBottom: tabBarHeight + LAYOUT.sectionGap + 36,
+            },
           ]}
           showsVerticalScrollIndicator={false}
         >
@@ -120,10 +127,10 @@ export function EscrowScreen({ navigation }: Props) {
           </Text>
 
           <GlassCard accent="top" style={styles.block}>
-            <Text style={styles.heroEyebrow}>Snapshot · demo data</Text>
+            <Text style={styles.heroEyebrow}>SNAPSHOT · DEMO DATA</Text>
             <View style={styles.heroRow}>
               <LinearGradient
-                colors={[...GRADIENT_RAINBOW]}
+                colors={[...GRADIENT_CTA]}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 1 }}
                 style={styles.heroIconRing}
@@ -131,17 +138,17 @@ export function EscrowScreen({ navigation }: Props) {
                 <View style={styles.heroIconInner}>
                   <Ionicons
                     name="shield-checkmark"
-                    size={30}
+                    size={34}
                     color={COLORS.text}
                   />
                 </View>
               </LinearGradient>
               <View style={styles.heroStats}>
-                <View style={styles.heroMiniRow}>
-                  <View style={styles.miniStat}>
+                <View style={[styles.heroMiniRow, styles.heroStatRowDivider]}>
+                  <View style={[styles.miniStat, styles.miniStatLeft]}>
                     <Text style={styles.miniLab}>Active deals</Text>
                     <Text style={styles.miniVal}>
-                      {activeDeals.toLocaleString()}
+                      {formatCountSpaced(activeDeals)}
                     </Text>
                   </View>
                   <View style={styles.miniStat}>
@@ -152,10 +159,10 @@ export function EscrowScreen({ navigation }: Props) {
                   </View>
                 </View>
                 <View style={styles.heroMiniRow}>
-                  <View style={styles.miniStat}>
+                  <View style={[styles.miniStat, styles.miniStatLeft]}>
                     <Text style={styles.miniLab}>Messages scanned</Text>
                     <Text style={styles.miniVal}>
-                      {msgScanned.toLocaleString()}
+                      {formatCountSpaced(msgScanned)}
                     </Text>
                   </View>
                   <View style={styles.miniStat}>
@@ -170,18 +177,22 @@ export function EscrowScreen({ navigation }: Props) {
           <View style={styles.sectionHead}>
             <Text style={styles.sectionTitle}>Risk index</Text>
             <View style={styles.badge}>
-              <Ionicons name="chatbubbles-outline" size={14} color={COLORS.live} />
+              <Ionicons
+                name="chatbubbles-outline"
+                size={15}
+                color={COLORS.textMuted}
+              />
               <Text style={styles.badgeText}>Chat + behavior</Text>
             </View>
           </View>
-          <GlassCard style={styles.block}>
+          <GlassCard style={styles.block} innerStyle={styles.riskCardInner}>
             <SparklineBars />
             <Text style={styles.chartCaption}>
               Simulated scoring from cadence, urgency, and wallet cues.
             </Text>
           </GlassCard>
 
-          <Text style={styles.sectionLabel}>Capabilities</Text>
+          <Text style={styles.sectionLabel}>CAPABILITIES</Text>
           <View style={styles.featureGrid}>
             {FEATURES.map((f) => (
               <Pressable
@@ -218,7 +229,7 @@ export function EscrowScreen({ navigation }: Props) {
             style={({ pressed }) => [styles.feedLink, pressed && styles.pressed]}
           >
             <LinearGradient
-              colors={[...GRADIENT_RAINBOW]}
+              colors={[...GRADIENT_CTA]}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 0 }}
               style={styles.feedLinkGrad}
@@ -283,29 +294,29 @@ const styles = StyleSheet.create({
     color: COLORS.textMuted,
     fontSize: 14,
     lineHeight: 22,
-    marginBottom: 4,
+    marginBottom: LAYOUT.blockGap,
   },
   heroEyebrow: {
-    color: COLORS.textFaint,
-    fontSize: 11,
-    fontWeight: '600',
-    letterSpacing: 0.8,
+    color: COLORS.textMuted,
+    fontSize: 10,
+    fontWeight: '700',
+    letterSpacing: 1.4,
     textTransform: 'uppercase',
-    marginBottom: 14,
+    marginBottom: 18,
   },
   heroRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 14,
+    gap: 18,
   },
   heroIconRing: {
-    padding: 2,
+    padding: 3,
     borderRadius: 999,
   },
   heroIconInner: {
-    width: 72,
-    height: 72,
-    borderRadius: 36,
+    width: 82,
+    height: 82,
+    borderRadius: 41,
     backgroundColor: COLORS.surface,
     alignItems: 'center',
     justifyContent: 'center',
@@ -315,85 +326,108 @@ const styles = StyleSheet.create({
   heroStats: {
     flex: 1,
     minWidth: 0,
-    gap: 12,
+    gap: 4,
   },
   heroMiniRow: {
     flexDirection: 'row',
-    gap: 12,
+    gap: 0,
+  },
+  heroStatRowDivider: {
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: COLORS.borderSubtle,
+    paddingBottom: 14,
+    marginBottom: 14,
   },
   miniStat: {
     flex: 1,
+    minWidth: 0,
+  },
+  miniStatLeft: {
+    borderRightWidth: StyleSheet.hairlineWidth,
+    borderRightColor: COLORS.borderSubtle,
+    paddingRight: 14,
+    marginRight: 14,
   },
   miniLab: {
-    color: COLORS.textFaint,
+    color: COLORS.textMuted,
     fontSize: 10,
     textTransform: 'uppercase',
-    letterSpacing: 0.5,
-    fontWeight: '600',
+    letterSpacing: 1,
+    fontWeight: '700',
   },
   miniVal: {
     color: COLORS.text,
-    fontSize: 14,
-    fontWeight: '700',
-    marginTop: 4,
+    fontSize: 19,
+    fontWeight: '800',
+    marginTop: 6,
     fontVariant: ['tabular-nums'],
+    letterSpacing: -0.3,
   },
   sectionHead: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginTop: 4,
-    marginBottom: 10,
+    marginTop: 18,
+    marginBottom: 14,
+    paddingHorizontal: 2,
   },
   sectionTitle: {
     color: COLORS.text,
-    fontSize: 15,
+    fontSize: 18,
     fontWeight: '700',
+    letterSpacing: -0.2,
   },
   badge: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
+    gap: 7,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
     borderRadius: 999,
-    backgroundColor: COLORS.surfaceRaised,
+    backgroundColor: COLORS.surfaceMuted,
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: COLORS.borderSubtle,
   },
   badgeText: {
     color: COLORS.textMuted,
     fontSize: 11,
-    fontWeight: '600',
+    fontWeight: '700',
+    letterSpacing: 0.2,
+  },
+  riskCardInner: {
+    padding: 22,
   },
   chartCaption: {
-    marginTop: 12,
-    color: COLORS.textFaint,
+    marginTop: 18,
+    color: COLORS.textMuted,
     fontSize: 12,
     lineHeight: 18,
+    textAlign: 'center',
+    paddingHorizontal: 8,
   },
   sectionLabel: {
-    marginTop: 8,
-    color: COLORS.textFaint,
+    alignSelf: 'flex-start',
+    marginTop: 12,
+    marginBottom: 14,
+    color: COLORS.textMuted,
     fontSize: 11,
     letterSpacing: 2,
-    textTransform: 'uppercase',
     fontWeight: '700',
   },
   featureGrid: {
-    marginTop: 12,
-    gap: 8,
+    marginTop: 0,
+    gap: 10,
   },
   featureCard: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 14,
-    paddingVertical: 14,
-    paddingHorizontal: 14,
+    paddingVertical: 16,
+    paddingHorizontal: 16,
     borderRadius: LAYOUT.cardRadius,
-    backgroundColor: COLORS.glass,
+    backgroundColor: COLORS.surface,
     borderWidth: StyleSheet.hairlineWidth,
-    borderColor: COLORS.glassBorder,
+    borderColor: COLORS.borderSubtle,
   },
   featureIconBG: {
     width: 42,

@@ -1,11 +1,10 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { COLORS, LAYOUT } from '../theme';
+import { COLORS, GRADIENT_CTA, LAYOUT } from '../theme';
 import { LogoMark } from './LogoMark';
 
 /** Toolbar height — use for vertical alignment (iOS-style 44pt) */
 const TOOLBAR_H = 44;
-const CTA_GRADIENT = ['#f5f5f5', '#cfcfd4'] as const;
 
 type Props = {
   showPitchBanner?: boolean;
@@ -61,9 +60,9 @@ export function AppHeader({
             accessibilityRole="button"
           >
             <LinearGradient
-              colors={[...CTA_GRADIENT]}
+              colors={[...GRADIENT_CTA]}
               start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 0 }}
+              end={{ x: 1, y: 1 }}
               style={styles.ctaBorder}
             >
               <View style={styles.ctaInner}>
@@ -139,7 +138,7 @@ const styles = StyleSheet.create({
   iconButton: {
     width: 40,
     height: 40,
-    borderRadius: 10,
+    borderRadius: 14,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: StyleSheet.hairlineWidth,
@@ -166,15 +165,15 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.text,
   },
   ctaBorder: {
-    borderRadius: 10,
+    borderRadius: 14,
     padding: 1,
   },
   ctaInner: {
     minHeight: 38,
     paddingHorizontal: 12,
     paddingVertical: 7,
-    borderRadius: 9,
-    backgroundColor: COLORS.bg,
+    borderRadius: 13,
+    backgroundColor: COLORS.surface,
     alignItems: 'center',
     justifyContent: 'center',
   },

@@ -2,7 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { NavigationContainer, DefaultTheme } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet } from 'react-native';
+import { Platform, StyleSheet } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { EscrowScreen } from './src/screens/EscrowScreen';
 import { FeedScreen } from './src/screens/FeedScreen';
@@ -25,16 +25,33 @@ function MainTabs() {
     <Tab.Navigator
       screenOptions={{
         headerShown: false,
-        tabBarStyle: {
-          backgroundColor: COLORS.tabBar,
-          borderTopColor: COLORS.borderSubtle,
-          borderTopWidth: StyleSheet.hairlineWidth,
-        },
         tabBarActiveTintColor: COLORS.text,
         tabBarInactiveTintColor: COLORS.textMuted,
         tabBarLabelStyle: {
           fontSize: 11,
           fontWeight: '700',
+        },
+        tabBarItemStyle: {
+          paddingTop: 6,
+          paddingBottom: 6,
+        },
+        tabBarStyle: {
+          position: 'absolute',
+          left: 18,
+          right: 18,
+          bottom: Platform.OS === 'ios' ? 26 : 18,
+          height: 64,
+          borderRadius: 32,
+          backgroundColor: COLORS.tabBar,
+          borderTopWidth: 0,
+          borderWidth: StyleSheet.hairlineWidth,
+          borderColor: COLORS.borderSubtle,
+          paddingHorizontal: 10,
+          elevation: 12,
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: 8 },
+          shadowOpacity: 0.35,
+          shadowRadius: 16,
         },
       }}
     >

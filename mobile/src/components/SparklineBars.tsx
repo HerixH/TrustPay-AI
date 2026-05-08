@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { GRADIENT_RAINBOW } from '../theme';
+import { GRADIENT_BAR_RISK_INDEX } from '../theme';
 
-const BARS = 24;
-const CHART_H = 56;
+const BARS = 25;
+const CHART_H = 76;
+const BAR_TOP_RADIUS = 6;
 
 function clamp(n: number, lo: number, hi: number) {
   return Math.max(lo, Math.min(hi, n));
@@ -29,16 +30,30 @@ export function SparklineBars() {
 
   return (
     <View style={styles.wrap}>
-      {heights.map((h, i) => (
-        <View key={`b-${i}`} style={styles.slot}>
-          <LinearGradient
-            colors={[...GRADIENT_RAINBOW]}
-            start={{ x: 0, y: 1 }}
-            end={{ x: 0, y: 0 }}
-            style={[styles.bar, { height: Math.max(4, h * CHART_H) }]}
-          />
-        </View>
-      ))}
+      {heights.map((h, i) => {
+        const hPx = Math.max(8, h * CHART_H);
+        return (
+          <View key={`b-${i}`} style={styles.slot}>
+            <View
+              style={[
+                styles.barClip,
+                {
+                  height: hPx,
+                  borderTopLeftRadius: BAR_TOP_RADIUS,
+                  borderTopRightRadius: BAR_TOP_RADIUS,
+                },
+              ]}
+            >
+              <LinearGradient
+                colors={[...GRADIENT_BAR_RISK_INDEX]}
+                start={{ x: 0.5, y: 1 }}
+                end={{ x: 0.5, y: 0 }}
+                style={StyleSheet.absoluteFill}
+              />
+            </View>
+          </View>
+        );
+      })}
     </View>
   );
 }
@@ -49,15 +64,17 @@ const styles = StyleSheet.create({
     alignItems: 'flex-end',
     height: CHART_H,
     gap: 2,
-    paddingHorizontal: 2,
+    paddingHorizontal: 6,
   },
   slot: {
     flex: 1,
     justifyContent: 'flex-end',
   },
-  bar: {
+  barClip: {
     width: '100%',
-    borderRadius: 2,
-    opacity: 0.68,
+    overflow: 'hidden',
+    borderBottomLeftRadius: 0,
+    borderBottomRightRadius: 0,
+    opacity: 0.98,
   },
 });

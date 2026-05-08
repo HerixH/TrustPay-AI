@@ -1,24 +1,42 @@
 import { Dimensions } from 'react-native';
 
 export const COLORS = {
-  bg: '#050505',
-  surface: '#0d0d0f',
-  surfaceRaised: '#161619',
-  line: '#212125',
-  lineBright: '#303036',
-  text: '#f4f4f5',
-  textMuted: '#71717a',
-  textFaint: '#52525b',
-  borderSubtle: '#2b2b31',
-  success: '#f5f5f5',
-  danger: '#a1a1aa',
+  bg: '#121212',
+  surface: '#1E1E1E',
+  surfaceRaised: '#252525',
+  surfaceMuted: '#2C2C2E',
+  line: '#2d2d30',
+  lineBright: '#3f3f46',
+  text: '#fafafa',
+  textMuted: '#a1a1aa',
+  textFaint: '#71717a',
+  borderSubtle: '#333336',
+  /** Primary CTA accent (teal → blue) */
+  accentTeal: '#14b8a6',
+  accentBlue: '#3b82f6',
+  success: '#34d399',
+  danger: '#f87171',
   live: '#d4d4d8',
-  tabBar: '#09090b',
-  glass: 'rgba(12, 12, 14, 0.86)',
-  glassBorder: 'rgba(255,255,255,0.06)',
+  tabBar: '#1a1a1c',
+  glass: 'rgba(30, 30, 30, 0.94)',
+  glassBorder: 'rgba(255,255,255,0.08)',
+  mapLand: '#2a2a2e',
+  mapRoad: 'rgba(255,255,255,0.06)',
 };
 
-/** Monochrome accent stops for borders / CTAs */
+/** Teal → blue for primary actions (matches reference CTA) */
+export const GRADIENT_CTA = ['#14b8a6', '#2563eb'] as const;
+
+/** Risk index bars: dark base → bright cap (flat bottom, rounded top) */
+export const GRADIENT_BAR_RISK_INDEX = [
+  '#333333',
+  '#525252',
+  '#a3a3a3',
+  '#f5f5f5',
+  '#ffffff',
+] as const;
+
+/** Secondary chrome gradients */
 export const GRADIENT_RAINBOW = [
   '#ffffff',
   '#e5e7eb',
@@ -40,10 +58,11 @@ export const windowWidth = Dimensions.get('window').width;
 
 /** Shared spacing — use for aligned, consistent layouts */
 export const LAYOUT = {
-  screenPadding: 20,
-  sectionGap: 20,
-  blockGap: 12,
-  cardRadius: 14,
-  cardPadding: 16,
+  screenPadding: 18,
+  sectionGap: 22,
+  blockGap: 14,
+  cardRadius: 22,
+  cardRadiusLarge: 26,
+  cardPadding: 18,
   maxContentWidth: 520,
 } as const;

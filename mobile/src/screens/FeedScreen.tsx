@@ -1,5 +1,6 @@
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
+import { Ionicons } from '@expo/vector-icons';
 import { useEffect, useMemo, useState } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -70,6 +71,19 @@ function makeItem(): FeedItem {
   };
 }
 
+function toneAccent(tone: Tone): string {
+  switch (tone) {
+    case 'good':
+      return COLORS.text;
+    case 'warn':
+      return '#eab308';
+    case 'bad':
+      return COLORS.danger;
+    default:
+      return COLORS.textFaint;
+  }
+}
+
 export function FeedScreen({ navigation }: Props) {
   const tabBarHeight = useBottomTabBarHeight();
   const [items, setItems] = useState<FeedItem[]>(() =>
@@ -88,26 +102,15 @@ export function FeedScreen({ navigation }: Props) {
     [items.length],
   );
 
-  const toneBar = (tone: Tone) => {
-    switch (tone) {
-      case 'good':
-        return '#f4f4f5';
-      case 'warn':
-        return '#d4d4d8';
-      case 'bad':
-        return '#a1a1aa';
-      default:
-        return '#71717a';
-    }
-  };
-
   return (
     <View style={styles.screen}>
       <SafeAreaView style={styles.safe} edges={['top']}>
         <ScrollView
           contentContainerStyle={[
             screenScroll.content,
-            { paddingBottom: tabBarHeight + LAYOUT.sectionGap },
+            {
+              paddingBottom: tabBarHeight + LAYOUT.sectionGap + 36,
+            },
           ]}
           showsVerticalScrollIndicator={false}
         >
@@ -116,18 +119,25 @@ export function FeedScreen({ navigation }: Props) {
             onMenuPress={() => navigation.navigate('Home')}
           />
           <LiveHeader />
-          <Text style={styles.head}>TrustPay AI</Text>
-          <Text style={styles.headSub}>Activity stream</Text>
-          <Text style={styles.meta}>{liveCount}</Text>
+
+          <Text style={styles.feedEyebrow}>TrustPay AI</Text>
+
+          <View style={styles.sectionHead}>
+            <Text style={styles.feedTitle}>Activity stream</Text>
+            <View style={styles.bufferPill}>
+              <Ionicons name="pulse" size={14} color={COLORS.textMuted} />
+              <Text style={styles.bufferText}>{liveCount}</Text>
+            </View>
+          </View>
 
           <View style={styles.list}>
             {items.map((it) => (
-              <GlassCard key={it.id}>
+              <GlassCard key={it.id} innerStyle={styles.cardInner}>
                 <View style={styles.cardRow}>
                   <View
                     style={[
                       styles.accent,
-                      { backgroundColor: toneBar(it.tone) },
+                      { backgroundColor: toneAccent(it.tone) },
                     ]}
                   />
                   <View style={styles.cardBody}>
@@ -153,36 +163,63 @@ const styles = StyleSheet.create({
   safe: {
     flex: 1,
   },
-  head: {
+  feedEyebrow: {
+    color: COLORS.textMuted,
+    fontSize: 10,
+    fontWeight: '700',
+    letterSpacing: 1.6,
+    textTransform: 'uppercase',
+    marginBottom: 10,
+    marginTop: 4,
+  },
+  sectionHead: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 14,
+    paddingHorizontal: 2,
+  },
+  feedTitle: {
     color: COLORS.text,
-    fontSize: 22,
+    fontSize: 18,
+    fontWeight: '700',
+    letterSpacing: -0.2,
+  },
+  bufferPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 7,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 999,
+    backgroundColor: COLORS.surfaceMuted,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: COLORS.borderSubtle,
+    maxWidth: '52%',
+  },
+  bufferText: {
+    color: COLORS.textMuted,
+    fontSize: 11,
     fontWeight: '700',
     letterSpacing: 0.15,
-    marginBottom: 2,
-  },
-  headSub: {
-    color: COLORS.textMuted,
-    fontSize: 14,
-    fontWeight: '600',
-    marginBottom: 4,
-  },
-  meta: {
-    color: COLORS.textFaint,
-    fontSize: 12,
-    marginBottom: 16,
-    fontWeight: '500',
+    flexShrink: 1,
   },
   list: {
-    gap: 8,
+    gap: 10,
+  },
+  cardInner: {
+    paddingVertical: 14,
+    paddingHorizontal: 14,
   },
   cardRow: {
     flexDirection: 'row',
     alignItems: 'stretch',
-    gap: 12,
+    gap: 14,
   },
   accent: {
-    width: 3,
-    borderRadius: 2,
+    width: 4,
+    borderRadius: 3,
+    alignSelf: 'stretch',
   },
   cardBody: {
     flex: 1,
@@ -204,5 +241,7 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: '600',
     fontVariant: ['tabular-nums'],
+    alignSelf: 'flex-start',
+    marginTop: 2,
   },
 });
