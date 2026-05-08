@@ -19,6 +19,7 @@ pub struct AppState {
     pub openai_key: Option<String>,
     pub eleven_key: Option<String>,
     pub eleven_voice_id: String,
+    pub eleven_model_id: String,
     pub solana_rpc: String,
     pub program_id: Pubkey,
 }
@@ -373,10 +374,15 @@ pub async fn voice_contract(
     };
 
     if let Some(api_key) = key {
-        let audio_base64 =
-            voice::synthesize_contract_voice(&state.http, &api_key, &state.eleven_voice_id, &script)
-                .await
-                .map_err(|e| err500(e.to_string()))?;
+        let audio_base64 = voice::synthesize_contract_voice(
+            &state.http,
+            &api_key,
+            &state.eleven_voice_id,
+            &state.eleven_model_id,
+            &script,
+        )
+        .await
+        .map_err(|e| err500(e.to_string()))?;
 
         Ok(Json(json!({
             "mime": "audio/mpeg",

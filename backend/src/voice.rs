@@ -7,12 +7,13 @@ pub async fn synthesize_contract_voice(
     http: &Client,
     api_key: &str,
     voice_id: &str,
+    model_id: &str,
     script: &str,
 ) -> Result<String> {
     let url = format!("https://api.elevenlabs.io/v1/text-to-speech/{voice_id}");
     let body = json!({
         "text": script,
-        "model_id": "eleven_multilingual_v2",
+        "model_id": model_id,
     });
     let res = http
         .post(&url)

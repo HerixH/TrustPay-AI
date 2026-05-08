@@ -20,6 +20,7 @@ fn test_app(tmp: &tempfile::NamedTempFile) -> axum::Router {
         openai_key: None,
         eleven_key: None,
         eleven_voice_id: "test".to_string(),
+        eleven_model_id: "eleven_multilingual_v2".to_string(),
         solana_rpc: "https://api.devnet.solana.com".to_string(),
         program_id: Pubkey::from_str("Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFDSn")
             .expect("program id"),

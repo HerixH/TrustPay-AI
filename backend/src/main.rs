@@ -26,6 +26,8 @@ async fn main() -> Result<()> {
     let eleven_key = std::env::var("ELEVENLABS_API_KEY").ok();
     let eleven_voice_id = std::env::var("ELEVENLABS_VOICE_ID")
         .unwrap_or_else(|_| "21m00Tcm4TlvDq8ikWAM".to_string());
+    let eleven_model_id = std::env::var("ELEVENLABS_MODEL_ID")
+        .unwrap_or_else(|_| "eleven_multilingual_v2".to_string());
 
     let http = reqwest::Client::builder()
         .user_agent("trustpay-api/0.1")
@@ -37,6 +39,7 @@ async fn main() -> Result<()> {
         openai_key,
         eleven_key,
         eleven_voice_id,
+        eleven_model_id,
         solana_rpc,
         program_id,
     };
