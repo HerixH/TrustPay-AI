@@ -184,7 +184,7 @@ Ship **TrustPay AI** with a **public backend** plus **one signed Android APK** t
 ### 1. Deploy the Rust API
 
 - **Docker Compose / local image:** build from [`backend/Dockerfile`](backend/Dockerfile) with context **`backend/`** (see [`docker-compose.yml`](docker-compose.yml)).
-- **Railway from GitHub monorepo root:** do **not** use **`npm start`** (that runs Expo and fails with **`expo: not found`**). Use the root **[`Dockerfile.api`](Dockerfile.api)** and **[`railway.toml`](railway.toml)** so Railway builds the Rust binary, or set **Root Directory** to **`backend`** and use **`backend/Dockerfile`** only.
+- **Railway from GitHub monorepo root:** do **not** use **`npm start`** (that runs Expo and fails with **`expo: not found`**). Use the root **[`Dockerfile`](Dockerfile)** and **[`railway.toml`](railway.toml)** so Railway builds the Rust binary, or set **Root Directory** to **`backend`** and use **`backend/Dockerfile`** only.
 - Expose **`PORT`** from your host (**Railway** sets **`PORT`** automatically; the server reads it).
 - **Persist SQLite:** mount a disk at **`/data`** and set **`DATABASE_PATH=/data/trustpay.sqlite`** — without this, redeployments reset the DB.
 - Set **`SOLANA_RPC_URL`**, **`TRUSTPAY_PROGRAM_ID`**, optional **`OPENAI_API_KEY`** / **`ELEVENLABS_*`**, copied from **`backend/.env.example`**.

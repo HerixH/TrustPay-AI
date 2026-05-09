@@ -1,9 +1,11 @@
-# Railway (monorepo root): build the Rust API image — do NOT run `npm start` / Expo here.
-# Dashboard: match these settings, or rely on this file if Railway detects it.
-#
-# Also set variables in Railway: TRUSTPAY_PROGRAM_ID, SOLANA_RPC_URL, optional OPENAI_*, ELEVENLABS_*,
-# DATABASE_PATH=/data/trustpay.sqlite, and attach a volume mount on /data for SQLite persistence.
+# Railway: force Docker (Rust API). Root Dockerfile must be named "Dockerfile" for detection.
+# Dashboard override: unset custom Start Command if it still says npm/node.
 
 [build]
 builder = "DOCKERFILE"
-dockerfilePath = "Dockerfile.api"
+dockerfilePath = "Dockerfile"
+watchPatterns = ["backend/**", "Dockerfile", "railway.toml"]
+
+[deploy]
+healthcheckPath = "/health"
+healthcheckTimeout = 120

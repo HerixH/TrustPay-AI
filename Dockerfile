@@ -1,5 +1,5 @@
-# Root Dockerfile for hosts that clone the monorepo and build from repo root (e.g. Railway default context).
-# Local / Compose still use backend/Dockerfile with context ./backend — unchanged.
+# TrustPay Rust API — repo-root Dockerfile for Railway & hosts that build from monorepo root.
+# Docker Compose still uses backend/Dockerfile with context ./backend (see docker-compose.yml).
 
 FROM rust:bookworm AS builder
 RUN apt-get update && apt-get install -y --no-install-recommends pkg-config libssl-dev && rm -rf /var/lib/apt/lists/*
