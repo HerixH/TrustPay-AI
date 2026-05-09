@@ -15,8 +15,24 @@ import type { HomeStackParamList } from "../navigation/types";
 import { createDeal } from "../api";
 import { useWallet } from "../wallet/WalletContext";
 import { COLORS, LAYOUT } from "../theme";
+import { PublicKey } from "@solana/web3.js";
 
 type Props = NativeStackScreenProps<HomeStackParamList, "DealCreate">;
+
+function parsePubkeyField(label: string, value: string): string {
+  const t = value.trim();
+  if (!t) {
+    throw new Error(
+      `${label} is required — paste a devnet wallet address (base58).`,
+    );
+  }
+  try {
+    new PublicKey(t);
+  } catch {
+    throw new Error(`${label} is not a valid Solana public key.`);
+  }
+  return t;
+}
 
 export function DealCreateScreen({ navigation }: Props) {
   const insets = useSafeAreaInsets();
@@ -43,10 +59,13 @@ export function DealCreateScreen({ navigation }: Props) {
       if (!Number.isFinite(amt) || amt <= 0) {
         throw new Error("Amount must be a positive number (lamports).");
       }
+      const buyerPk = parsePubkeyField("Buyer pubkey", buyer);
+      const sellerPk = parsePubkeyField("Seller pubkey", seller);
+      const arbiterPk = parsePubkeyField("Arbiter pubkey", arbiter);
       const res = await createDeal({
-        buyer: buyer.trim(),
-        seller: seller.trim(),
-        arbiter: arbiter.trim(),
+        buyer: buyerPk,
+        seller: sellerPk,
+        arbiter: arbiterPk,
         amount_lamports: Math.floor(amt),
       });
       const id = res.id as string;
@@ -73,7 +92,8 @@ export function DealCreateScreen({ navigation }: Props) {
     >
       <Text style={styles.title}>Create deal</Text>
       <Text style={styles.hint}>
-        Use devnet wallet pubkeys. Amount is in lamports (1 SOL = 1e9).
+        All three roles need valid devnet wallet addresses (base58). Amount is in lamports (1
+        SOL = 1e9). Seller and arbiter cannot be left empty.
       </Text>
 
       <Field label="Buyer pubkey" value={buyer} onChangeText={setBuyer} />
