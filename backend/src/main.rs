@@ -15,6 +15,15 @@ fn load_env_file() {
     let _ = dotenvy::dotenv();
 }
 
+/** Trim; empty or unset → default. */
+fn env_non_empty_trimmed(key: &str, default: &str) -> String {
+    std::env::var(key)
+        .ok()
+        .map(|s| s.trim().to_string())
+        .filter(|s| !s.is_empty())
+        .unwrap_or_else(|| default.to_string())
+}
+
 /** Trim + strip accidental quotes; empty means None. */
 fn env_secret(key: &str) -> Option<String> {
     let raw = std::env::var(key).ok()?;
@@ -49,10 +58,10 @@ async fn main() -> Result<()> {
 
     let openai_key = env_secret("OPENAI_API_KEY");
     let eleven_key = env_secret("ELEVENLABS_API_KEY");
-    let eleven_voice_id = std::env::var("ELEVENLABS_VOICE_ID")
-        .unwrap_or_else(|_| "21m00Tcm4TlvDq8ikWAM".to_string());
-    let eleven_model_id = std::env::var("ELEVENLABS_MODEL_ID")
-        .unwrap_or_else(|_| "eleven_multilingual_v2".to_string());
+    let eleven_voice_id =
+        env_non_empty_trimmed("ELEVENLABS_VOICE_ID", "21m00Tcm4TlvDq8ikWAM");
+    let eleven_model_id =
+        env_non_empty_trimmed("ELEVENLABS_MODEL_ID", "eleven_flash_v2_5");
 
     let http = reqwest::Client::builder()
         .user_agent("trustpay-api/0.1")
