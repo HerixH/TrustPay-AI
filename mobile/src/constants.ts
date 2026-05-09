@@ -1,13 +1,24 @@
 import Constants from "expo-constants";
 import { Platform } from "react-native";
 
-const extra = Constants.expoConfig?.extra as
-  | {
-      trustpayApiUrl?: string;
-      solanaRpcUrl?: string;
-      programId?: string;
-    }
-  | undefined;
+import appJson from "../app.json";
+
+type Extra = {
+  trustpayApiUrl?: string;
+  solanaRpcUrl?: string;
+  programId?: string;
+};
+
+/**
+ * `app.json` → `extra` is merged at bundle time so **Expo Web static export** still sees URLs even
+ * when `Constants.expoConfig` is null (otherwise `API_BASE` is "" and fetch hits the SPA origin → HTML → JSON error).
+ *
+ * Native / dev client: `Constants.expoConfig.extra` overlays the same keys when present.
+ */
+const mergedExtra: Extra = {
+  ...(appJson.expo?.extra as Extra | undefined),
+  ...(Constants.expoConfig?.extra as Extra | undefined),
+};
 
 const devHost = Platform.select({
   android: "10.0.2.2",
@@ -37,9 +48,9 @@ function inferDevApiHost(): string {
 }
 
 /**
- * Production / preview builds must set API origin at build time (EAS Secrets or env):
+ * Production / preview: optional override at **build** time (EAS, Vercel):
  * `EXPO_PUBLIC_TRUSTPAY_API_URL=https://your-api.example.com`
- * Optionally also set `app.json` → `extra.trustpayApiUrl`.
+ * Takes precedence over `app.json` extra for the API origin only.
  */
 function publicApiUrlFromEnv(): string | undefined {
   if (typeof process === "undefined" || !process.env) return undefined;
@@ -47,22 +58,22 @@ function publicApiUrlFromEnv(): string | undefined {
   return v && v.length > 0 ? v : undefined;
 }
 
-/** Override in `app.json` extra, or via `EXPO_PUBLIC_TRUSTPAY_API_URL` for release builds. */
+/** API origin: env override, then merged extra, then dev localhost. */
 export const API_BASE =
-  extra?.trustpayApiUrl?.trim() ||
   publicApiUrlFromEnv() ||
+  mergedExtra.trustpayApiUrl?.trim() ||
   (__DEV__ ? `http://${inferDevApiHost()}:8787` : "");
 
 /** Public devnet RPC unless overridden in app.json `extra.solanaRpcUrl`. */
 export const SOLANA_RPC_URL =
-  extra?.solanaRpcUrl?.trim() || "https://api.devnet.solana.com";
+  mergedExtra.solanaRpcUrl?.trim() || "https://api.devnet.solana.com";
 
 /**
  * Must match deployed Anchor program + backend `TRUSTPAY_PROGRAM_ID`.
  * Override via app.json `extra.programId` after `anchor deploy`.
  */
 export const TRUSTPAY_PROGRAM_ID_STR =
-  extra?.programId?.trim() ||
+  mergedExtra.programId?.trim() ||
   "Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFDSn";
 
 /** Mobile Wallet Adapter `authorize({ identity })` — shown in Phantom / other wallets. */

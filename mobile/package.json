@@ -8,6 +8,7 @@
     "ios": "expo run:ios",
     "web": "expo start --web",
     "build:web": "expo export -p web",
+    "deploy:vercel": "vercel deploy --prod --yes",
     "test": "jest",
     "test:watch": "jest --watch",
     "eas:android:store": "eas build -p android --profile production",

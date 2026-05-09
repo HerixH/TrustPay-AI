@@ -30,7 +30,7 @@
       "favicon": "./assets/favicon.png"
     },
     "extra": {
-      "trustpayApiUrl": "",
+      "trustpayApiUrl": "https://trustpay-ai-production.up.railway.app",
       "solanaRpcUrl": "https://api.devnet.solana.com",
       "programId": "Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFDSn",
       "eas": {
