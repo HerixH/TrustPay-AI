@@ -24,19 +24,19 @@ if (-not $key) {
 
 $key = $key.Trim().Trim([char]0xFEFF)
 if (-not $key.StartsWith("sk_")) {
-    Write-Host "Warning: key does not start with sk_ — ElevenLabs user keys usually do." -ForegroundColor Yellow
+    Write-Host "Warning: key does not start with sk_ - ElevenLabs user keys usually do." -ForegroundColor Yellow
 }
 
 $uri = "https://api.elevenlabs.io/v1/user"
 try {
     $r = Invoke-RestMethod -Uri $uri -Headers @{ "xi-api-key" = $key } -Method Get
-    Write-Host "OK — API key is valid (ElevenLabs /v1/user succeeded)." -ForegroundColor Green
+    Write-Host "OK - API key is valid (ElevenLabs /v1/user succeeded)." -ForegroundColor Green
     if ($r.subscription) {
         Write-Host ("Plan / tier: " + ($r.subscription.tier | ConvertTo-Json -Compress))
     }
     exit 0
 } catch {
-    Write-Host "FAILED — ElevenLabs rejected this key." -ForegroundColor Red
+    Write-Host "FAILED - ElevenLabs rejected this key." -ForegroundColor Red
     Write-Host $_.Exception.Message
     if ($_.ErrorDetails.Message) {
         Write-Host $_.ErrorDetails.Message
