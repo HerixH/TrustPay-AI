@@ -374,7 +374,7 @@ pub async fn voice_contract(
     };
 
     if let Some(api_key) = key {
-        let audio_base64 = voice::synthesize_contract_voice(
+        match voice::synthesize_contract_voice(
             &state.http,
             &api_key,
             &state.eleven_voice_id,
@@ -382,14 +382,24 @@ pub async fn voice_contract(
             &script,
         )
         .await
-        .map_err(|e| err500(e.to_string()))?;
-
-        Ok(Json(json!({
-            "mime": "audio/mpeg",
-            "deal_id": id,
-            "audio_base64": audio_base64,
-            "script": script,
-        })))
+        {
+            Ok(audio_base64) => Ok(Json(json!({
+                "mime": "audio/mpeg",
+                "deal_id": id,
+                "audio_base64": audio_base64,
+                "script": script,
+            }))),
+            Err(e) => {
+                tracing::warn!(error = %e, "ElevenLabs TTS failed; returning script only");
+                Ok(Json(json!({
+                    "mime": null,
+                    "deal_id": id,
+                    "audio_base64": serde_json::Value::Null,
+                    "script": script,
+                    "note": "Voice audio could not be generated (invalid key, quota, or ElevenLabs outage). Script is below — add a valid ELEVENLABS_API_KEY on the server if you need MP3.",
+                })))
+            }
+        }
     } else {
         Ok(Json(json!({
             "mime": null,
