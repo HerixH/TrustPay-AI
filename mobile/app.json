@@ -32,8 +32,14 @@
     "extra": {
       "trustpayApiUrl": "",
       "solanaRpcUrl": "https://api.devnet.solana.com",
-      "programId": "Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFDSn"
+      "programId": "Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFDSn",
+      "eas": {
+        "projectId": "a6544bd8-85c1-41a4-be0b-a1612543d166"
+      }
     },
-    "plugins": ["expo-secure-store", "expo-dev-client"]
+    "plugins": [
+      "expo-secure-store",
+      "expo-dev-client"
+    ]
   }
 }
