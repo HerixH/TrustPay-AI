@@ -12,7 +12,6 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import type { HomeStackParamList } from "../navigation/types";
 import { listDeals, type DealRow } from "../api";
-import { API_BASE } from "../constants";
 import { COLORS, LAYOUT } from "../theme";
 
 type Props = NativeStackScreenProps<HomeStackParamList, "Deals">;
@@ -43,7 +42,6 @@ export function HomeScreen({ navigation }: Props) {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>TrustPay AI</Text>
-      <Text style={styles.sub}>API: {API_BASE}</Text>
 
       <Pressable
         style={styles.secondary}
@@ -112,7 +110,6 @@ const styles = StyleSheet.create({
     color: COLORS.text,
     letterSpacing: -0.3,
   },
-  sub: { marginTop: 4, fontSize: 12, color: COLORS.textFaint },
   primary: {
     marginTop: 18,
     backgroundColor: COLORS.accentPurple,

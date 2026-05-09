@@ -12,6 +12,7 @@
     "start:tunnel": "npm run start:tunnel --prefix mobile",
     "backend": "cargo run --manifest-path backend/Cargo.toml",
     "deploy:escrow": "powershell -ExecutionPolicy Bypass -File scripts/deploy-escrow-devnet.ps1",
-    "eas:secret:set-api": "npm run eas:secret:set-api --prefix mobile"
+    "eas:secret:set-api": "npm run eas:secret:set-api --prefix mobile",
+    "deploy:vercel": "npm run deploy:vercel --prefix mobile"
   }
 }
