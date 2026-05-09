@@ -1,10 +1,11 @@
 {
   "expo": {
-    "name": "mobile",
-    "slug": "mobile",
+    "name": "TrustPay AI",
+    "slug": "trustpay-ai",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
+    "scheme": "trustpay-ai",
     "userInterfaceStyle": "dark",
     "newArchEnabled": true,
     "splash": {
@@ -13,9 +14,11 @@
       "backgroundColor": "#030014"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.chainminds.trustpayai"
     },
     "android": {
+      "package": "com.chainminds.trustpayai",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#030014"
@@ -31,8 +34,6 @@
       "solanaRpcUrl": "https://api.devnet.solana.com",
       "programId": "Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFDSn"
     },
-    "plugins": [
-      "expo-secure-store"
-    ]
+    "plugins": ["expo-secure-store", "expo-dev-client"]
   }
 }

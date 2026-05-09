@@ -96,10 +96,10 @@ See [`backend/.env.example`](backend/.env.example) for knobs (`HOST`, `PORT`, `D
 | Area | Behavior |
 |------|----------|
 | **Home** | Lists deals from API; entry to wallets and new deal. |
-| **Wallets & keys** | Primary keypair (**buyer** path for init/deposit); optional **seller** secret for mutual release cosigning; optional **arbiter** for dispute resolution — stored with **Expo SecureStore** (development / hackathon UX; treat as hot keys). |
-| **Create deal** | Posts to API; pre‑fills buyer with primary wallet pubkey when set. Seller/arbiter are pubkeys pasted or from another workflow. Amount in **lamports**. |
+| **Wallets & keys** | Primary keypair (**buyer** path for init/deposit); optional **seller** secret for mutual release cosigning; optional **arbiter** for dispute resolution — stored with **Expo SecureStore** (development / hackathon UX; treat as hot keys). **Android:** optional **Mobile Wallet Adapter** link (`@solana-mobile/mobile-wallet-adapter-protocol-web3js`) for Phantom / other MWA wallets — requires an **Expo dev client** APK, not Expo Go. |
+| **Create deal** | Posts to API; pre‑fills buyer from primary keypair, else from linked MWA pubkey when set. Seller/arbiter are pubkeys pasted or from another workflow. Amount in **lamports**. |
 | **Deal room** | Chat, **Analyze**, **Voice contract**, toggles RPC bundle; **On‑chain escrow** buttons: Initialize → Deposit → Release / Dispute parties / Arbiter resolves. Status line reads escrow byte layout from RPC when account exists. |
-| **Networking** | `expo.extra.trustpayApiUrl` for LAN device testing; emulator defaults `10.0.2.2:8787` (Android), `localhost:8787` (iOS sim). RPC / program override via `solanaRpcUrl` / `programId` in `app.json`. |
+| **Networking** | **Dev:** `extra.trustpayApiUrl` in `app.json`, or LAN emulator defaults (`10.0.2.2` / localhost). **Store / EAS builds:** [**Hosted API**](#hosted-api-and-solana-dapp-store) — set **`EXPO_PUBLIC_TRUSTPAY_API_URL`** to your public HTTPS API. RPC / program: `solanaRpcUrl` / `programId` in `app.json`. |
 
 Solana helpers live under [`mobile/src/solana/`](mobile/src/solana/) (PDAs, instruction encoding aligned with Anchor discriminators).
 
@@ -155,6 +155,8 @@ npx expo start
 - **Physical device:** set **`mobile/app.json` → `extra.trustpayApiUrl`** to your machine, e.g. `http://192.168.x.x:8787`.
 - **Fund buyer** wallets on devnet before **Initialize / Deposit**.
 
+**Android + Phantom (Mobile Wallet Adapter):** Expo Go does not include the MWA native module. Build and install a **development client** (`expo-dev-client` is already in the project), then run Metro with `npx expo start --dev-client`. Example EAS build: from `mobile/`, run `npx eas build --profile development --platform android` (see [`mobile/eas.json`](mobile/eas.json)); install the APK, open TrustPay AI, use **Wallets → Link wallet**, then create deals whose buyer/seller/arbiter pubkeys match the linked Phantom account when using MWA actions.
+
 ### 3. Deploy escrow (optional)
 
 ```bash
@@ -167,6 +169,62 @@ anchor deploy --provider.cluster devnet
 ```
 
 Mirror the deployed id into **`backend/.env`** and **`mobile/app.json`**.
+
+---
+
+## Hosted API and Solana dApp Store
+
+Use this checklist when **hosting the backend** for real devices and submitting the Expo app to **Solana Mobile** (and optionally **Google Play**). Vercel and similar static/serverless hosts are not a substitute for container-style hosting of Axum here; Railway, Fly.io, Render, or your own VPS with this Dockerfile typically are.
+
+### 1. Deploy the Rust API
+
+- Build from [`backend/Dockerfile`](backend/Dockerfile) with context **`backend/`** (matches [`docker-compose.yml`](docker-compose.yml)).
+- Expose **`PORT`** from your host (**Railway** sets **`PORT`** automatically; the server reads it).
+- **Persist SQLite:** mount a disk at **`/data`** and set **`DATABASE_PATH=/data/trustpay.sqlite`** — without this, redeployments reset the DB.
+- Set **`SOLANA_RPC_URL`**, **`TRUSTPAY_PROGRAM_ID`**, optional **`OPENAI_API_KEY`** / **`ELEVENLABS_*`**, copied from **`backend/.env.example`**.
+
+Confirm **`GET https://YOUR-ORIGIN/health`** returns **`ok`** from the public internet before shipping the mobile build.
+
+### 2. Aim the compiled app at the hosted API
+
+For **production / EAS** builds only (not dev):
+
+```bash
+cd mobile
+eas secret:create --scope project --name EXPO_PUBLIC_TRUSTPAY_API_URL --value https://YOUR-ORIGIN
+```
+
+Rebuild after changing secrets (`npm run eas:android:store` etc.). Omitting this yields an empty **`API_BASE`** at runtime — the app cannot load deals/chat from your Railway host.
+
+### 3. Produce APK / AAB for stores
+
+From **`mobile/`**:
+
+| Goal | Script / command |
+|------|-------------------|
+| **AAB** (modern Google Play uploads) | `npm run eas:android:store` (`production` profile) |
+| **APK** (sideload, some forms, testers) | `npm run eas:android:apk` or `eas:android:preview` |
+
+Ensure **`android.package`** and **`ios.bundleIdentifier`** in [`mobile/app.json`](mobile/app.json) match what you declare in each console (**Solana listing package name = `android.package`**).
+
+### 4. Solana Mobile dApp Store (signed APK)
+
+The storefront expects a **signed APK** ([**Build and sign an APK**](https://docs.solanamobile.com/dapp-store/build-and-sign-an-apk)), **not** a Play-style AAB. In this repo, from **`mobile/`**:
+
+```bash
+npm run eas:android:dapp-store
+# equivalent: eas build --platform android --profile dapp-store
+```
+
+Same flow as Expo’s [**EAS Build**](https://docs.expo.dev/build/introduction/): first Android build, EAS can **generate credentials** or you can attach a **`keytool` keystore**. **Critical:** Solana warns that if you **also** publish on **Google Play**, you **must use a separate signing identity** for the dApp Store build — **do not reuse Play’s signing key for the APK you upload to Solana**. Store the keystore and passwords securely; upgrades must use the same key.
+
+Verify the artifact after download:
+
+```bash
+apksigner verify --print-certs path/to/app-release.apk
+```
+
+Continue with storefront submission ([Submit your app](https://docs.solanamobile.com/dapp-store/submit-new-app)) plus metadata/screenshots (`mobile/assets/`). Google Play stays optional (`npm run eas:android:store` + **`eas submit`**), using your **AAB** track and distinct signing from Solana where required.
 
 ---
 

@@ -36,10 +36,22 @@ function inferDevApiHost(): string {
   return ip;
 }
 
-/** Override in `app.json` extra.trustpayApiUrl when the inferred host is wrong. */
+/**
+ * Production / preview builds must set API origin at build time (EAS Secrets or env):
+ * `EXPO_PUBLIC_TRUSTPAY_API_URL=https://your-api.example.com`
+ * Optionally also set `app.json` → `extra.trustpayApiUrl`.
+ */
+function publicApiUrlFromEnv(): string | undefined {
+  if (typeof process === "undefined" || !process.env) return undefined;
+  const v = process.env.EXPO_PUBLIC_TRUSTPAY_API_URL?.trim();
+  return v && v.length > 0 ? v : undefined;
+}
+
+/** Override in `app.json` extra, or via `EXPO_PUBLIC_TRUSTPAY_API_URL` for release builds. */
 export const API_BASE =
   extra?.trustpayApiUrl?.trim() ||
-  (__DEV__ ? `http://${inferDevApiHost()}:8787` : "http://localhost:8787");
+  publicApiUrlFromEnv() ||
+  (__DEV__ ? `http://${inferDevApiHost()}:8787` : "");
 
 /** Public devnet RPC unless overridden in app.json `extra.solanaRpcUrl`. */
 export const SOLANA_RPC_URL =
@@ -52,3 +64,12 @@ export const SOLANA_RPC_URL =
 export const TRUSTPAY_PROGRAM_ID_STR =
   extra?.programId?.trim() ||
   "Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFDSn";
+
+/** Mobile Wallet Adapter `authorize({ identity })` — shown in Phantom / other wallets. */
+export const MWA_APP_IDENTITY = {
+  name: "TrustPay AI",
+  uri: "https://trustpay.ai",
+} as const;
+
+/** Wallet-standard chain id for Solana devnet (MWA 2.x). */
+export const SOLANA_MWA_CHAIN = "solana:devnet" as const;

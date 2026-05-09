@@ -130,7 +130,7 @@ export function LandingScreen({ navigation }: Props) {
               accessibilityLabel="Open wallets"
             >
               <Ionicons name="wallet-outline" size={20} color={COLORS.accentTeal} />
-              <Text style={styles.linkText}>Wallets</Text>
+              <Text style={styles.linkText}>Wallets & connect</Text>
               <Ionicons name="chevron-forward" size={18} color={COLORS.textFaint} />
             </Pressable>
           </GlassCard>

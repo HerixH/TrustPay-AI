@@ -31,8 +31,10 @@ export function DealCreateScreen({ navigation }: Props) {
   useEffect(() => {
     if (wallet.primary) {
       setBuyer(wallet.primary.publicKey.toBase58());
+    } else if (wallet.mobileWalletPubkey) {
+      setBuyer(wallet.mobileWalletPubkey.toBase58());
     }
-  }, [wallet.primary]);
+  }, [wallet.primary, wallet.mobileWalletPubkey]);
 
   const submit = async () => {
     setBusy(true);

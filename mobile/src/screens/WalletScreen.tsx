@@ -2,6 +2,7 @@ import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
 import { useState, type ReactNode } from "react";
 import {
   Alert,
+  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -57,6 +58,57 @@ export function WalletScreen() {
             key (Solana CLI / Phantom export). Fund SOL on devnet before on-chain
             steps.
           </Text>
+          <WalletSection title="Connect wallet" accent="top" style={styles.firstCard}>
+            {Platform.OS === "android" ? (
+              <>
+                <Text style={styles.addr}>
+                  {w.mobileWalletPubkey
+                    ? w.shortAddr(w.mobileWalletPubkey)
+                    : "Not linked — Phantom / MWA not connected yet"}
+                </Text>
+                <Text style={styles.mwaHint}>
+                  Install Phantom (or another Mobile Wallet Adapter wallet). Use a custom Android dev client APK
+                  (expo-dev-client). Expo Go cannot load MWA — build from README / eas.json, then run Metro with{" "}
+                  <Text style={styles.mwaMono}>expo start --dev-client</Text>. Linked pubkey must match the deal role
+                  you act as (buyer, seller, or arbiter).
+                </Text>
+                <View style={styles.btnStack}>
+                  <Btn
+                    label={busy ? "…" : "Link Phantom / wallet"}
+                    onPress={() =>
+                      void run(async () => {
+                        await w.linkMobileWallet();
+                      })
+                    }
+                    disabled={busy}
+                  />
+                  <Btn
+                    label="Unlink"
+                    outline
+                    onPress={() => void run(w.unlinkMobileWallet)}
+                    disabled={busy || !w.mobileWalletPubkey}
+                  />
+                </View>
+              </>
+            ) : (
+              <>
+                <Text style={styles.mwaHint}>
+                  On <Text style={styles.mwaEm}>web and iOS</Text>, Phantom does not pop up here yet — the app signs
+                  with keys below (SecureStore on phone; browser storage on PC).
+                </Text>
+                <Text style={styles.mwaHint}>
+                  To use your Phantom balance on PC: in Phantom switch to <Text style={styles.mwaEm}>Devnet</Text>,
+                  then export the private key for that account (settings → security — demo only) and paste it under{" "}
+                  <Text style={styles.mwaEm}>Primary → Import primary</Text>. Or tap <Text style={styles.mwaEm}>Generate</Text>{" "}
+                  for a new demo key and fund it with devnet SOL.
+                </Text>
+                <Text style={styles.mwaHint}>
+                  On <Text style={styles.mwaEm}>Android</Text>, install the dev build APK and use{" "}
+                  <Text style={styles.mwaEm}>Link Phantom / wallet</Text> here instead.
+                </Text>
+              </>
+            )}
+          </WalletSection>
           <Text style={styles.meta} selectable>
             RPC: {SOLANA_RPC_URL}
           </Text>
@@ -67,8 +119,8 @@ export function WalletScreen() {
 
           <WalletSection
             title="Primary (buyer / init / deposit)"
-            accent="top"
-            style={styles.firstCard}
+            accent="none"
+            style={styles.block}
           >
             <Text style={styles.addr}>
               {w.primary
@@ -286,6 +338,25 @@ const styles = StyleSheet.create({
     color: COLORS.textMuted,
     lineHeight: 22,
     fontSize: 15,
+  },
+  mwaHint: {
+    marginTop: 10,
+    fontSize: 12,
+    color: COLORS.textFaint,
+    lineHeight: 18,
+  },
+  mwaEm: {
+    fontWeight: "700",
+    color: COLORS.textMuted,
+  },
+  mwaMono: {
+    fontFamily: Platform.select({
+      ios: "Menlo",
+      android: "monospace",
+      default: "monospace",
+    }),
+    fontSize: 11,
+    color: COLORS.accentMint,
   },
   meta: {
     marginTop: 8,

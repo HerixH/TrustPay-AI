@@ -29,10 +29,15 @@ import {
 import type { HomeStackParamList } from "../navigation/types";
 import {
   runDeposit,
+  runDepositMwa,
   runInitialize,
+  runInitializeMwa,
   runOpenDispute,
+  runOpenDisputeMwa,
   runReleaseMutual,
+  runReleaseMutualMwa,
   runResolveDispute,
+  runResolveDisputeMwa,
 } from "../solana/escrowFlow";
 import { readEscrowStatus, escrowStatusLabel } from "../solana/parse";
 import { LinearGradient } from "expo-linear-gradient";
@@ -362,13 +367,21 @@ export function DealDetailScreen({ route }: Props) {
   const pri = wallet.primary?.publicKey.toBase58();
   const cos = wallet.coSigner?.publicKey.toBase58();
   const arbKp = wallet.arbiter?.publicKey.toBase58();
+  const mwa = wallet.mobileWalletPubkey?.toBase58();
 
-  const canBuyerOps = !!wallet.primary && pri === buyerAddr;
-  const canRelease =
+  const canBuyerLocal = !!wallet.primary && pri === buyerAddr;
+  const canBuyerMwa = !!mwa && mwa === buyerAddr;
+  const canBuyerOps = canBuyerLocal || canBuyerMwa;
+
+  const canReleaseLocal =
     !!wallet.primary &&
     !!wallet.coSigner &&
     pri === buyerAddr &&
     cos === sellerAddr;
+  const canReleaseMwa =
+    !!wallet.coSigner && !!mwa && mwa === buyerAddr && cos === sellerAddr;
+  const canRelease = canReleaseLocal || canReleaseMwa;
+
   const disputeSignerBuyer = wallet.primary && pri === buyerAddr ? wallet.primary : null;
   const disputeSignerSeller =
     wallet.primary && pri === sellerAddr
@@ -376,7 +389,12 @@ export function DealDetailScreen({ route }: Props) {
       : wallet.coSigner && cos === sellerAddr
         ? wallet.coSigner
         : null;
-  const canResolve = !!wallet.arbiter && arbKp === arbAddr;
+  const canDisputeBuyerMwa = !!mwa && mwa === buyerAddr;
+  const canDisputeSellerMwa = !!mwa && mwa === sellerAddr;
+
+  const canResolveLocal = !!wallet.arbiter && arbKp === arbAddr;
+  const canResolveMwa = !!mwa && mwa === arbAddr;
+  const canResolve = canResolveLocal || canResolveMwa;
 
   return (
     <View style={{ flex: 1, backgroundColor: COLORS.bg }}>
@@ -445,10 +463,10 @@ export function DealDetailScreen({ route }: Props) {
               <Text style={styles.onChainMeta}>
                 PDA status: {escrowStatus ?? "—"} · fund SOL on devnet first.
               </Text>
-              {!wallet.primary ? (
+              {!wallet.primary && !canBuyerMwa ? (
                 <Text style={styles.warn}>
-                  Open Wallets & keys from the home screen and generate or import the buyer key (must
-                  match Buyer pubkey).
+                  Set buyer keys: open Wallets and generate/import the buyer key, or on Android link Phantom (MWA)
+                  so the linked pubkey matches Buyer on this deal.
                 </Text>
               ) : null}
 
@@ -456,9 +474,12 @@ export function DealDetailScreen({ route }: Props) {
                 label="1 · Initialize"
                 disabled={chainBusy || !canBuyerOps}
                 onPress={() =>
-                  void runChain(() =>
-                    runInitialize(wallet.connection, wallet.primary!, bundle),
-                  )
+                  void runChain(async () => {
+                    if (canBuyerLocal) {
+                      return runInitialize(wallet.connection, wallet.primary!, bundle);
+                    }
+                    return runInitializeMwa(wallet.connection, bundle);
+                  })
                 }
               />
 
@@ -466,9 +487,12 @@ export function DealDetailScreen({ route }: Props) {
                 label="2 · Deposit lamports"
                 disabled={chainBusy || !canBuyerOps}
                 onPress={() =>
-                  void runChain(() =>
-                    runDeposit(wallet.connection, wallet.primary!, bundle),
-                  )
+                  void runChain(async () => {
+                    if (canBuyerLocal) {
+                      return runDeposit(wallet.connection, wallet.primary!, bundle);
+                    }
+                    return runDepositMwa(wallet.connection, bundle);
+                  })
                 }
               />
 
@@ -476,34 +500,59 @@ export function DealDetailScreen({ route }: Props) {
                 label="Release (buyer + seller keys)"
                 disabled={chainBusy || !canRelease}
                 onPress={() =>
-                  void runChain(() =>
-                    runReleaseMutual(
+                  void runChain(async () => {
+                    if (canReleaseLocal) {
+                      return runReleaseMutual(
+                        wallet.connection,
+                        wallet.primary!,
+                        wallet.coSigner!,
+                        bundle,
+                      );
+                    }
+                    return runReleaseMutualMwa(
                       wallet.connection,
-                      wallet.primary!,
                       wallet.coSigner!,
                       bundle,
-                    ),
-                  )
+                    );
+                  })
                 }
               />
 
               <ChainOutlineButton
                 label="Dispute (buyer)"
-                disabled={chainBusy || !disputeSignerBuyer}
+                disabled={
+                  chainBusy || !(disputeSignerBuyer || canDisputeBuyerMwa)
+                }
                 onPress={() =>
-                  void runChain(() =>
-                    runOpenDispute(wallet.connection, disputeSignerBuyer!, bundle),
-                  )
+                  void runChain(async () => {
+                    if (disputeSignerBuyer) {
+                      return runOpenDispute(
+                        wallet.connection,
+                        disputeSignerBuyer,
+                        bundle,
+                      );
+                    }
+                    return runOpenDisputeMwa(wallet.connection, bundle, "buyer");
+                  })
                 }
               />
 
               <ChainOutlineButton
                 label="Dispute (seller)"
-                disabled={chainBusy || !disputeSignerSeller}
+                disabled={
+                  chainBusy || !(disputeSignerSeller || canDisputeSellerMwa)
+                }
                 onPress={() =>
-                  void runChain(() =>
-                    runOpenDispute(wallet.connection, disputeSignerSeller!, bundle),
-                  )
+                  void runChain(async () => {
+                    if (disputeSignerSeller) {
+                      return runOpenDispute(
+                        wallet.connection,
+                        disputeSignerSeller,
+                        bundle,
+                      );
+                    }
+                    return runOpenDisputeMwa(wallet.connection, bundle, "seller");
+                  })
                 }
               />
 
@@ -511,14 +560,17 @@ export function DealDetailScreen({ route }: Props) {
                 label="Resolve → seller (arbiter)"
                 disabled={chainBusy || !canResolve}
                 onPress={() =>
-                  void runChain(() =>
-                    runResolveDispute(
-                      wallet.connection,
-                      wallet.arbiter!,
-                      bundle,
-                      true,
-                    ),
-                  )
+                  void runChain(async () => {
+                    if (canResolveLocal) {
+                      return runResolveDispute(
+                        wallet.connection,
+                        wallet.arbiter!,
+                        bundle,
+                        true,
+                      );
+                    }
+                    return runResolveDisputeMwa(wallet.connection, bundle, true);
+                  })
                 }
               />
 
@@ -526,14 +578,17 @@ export function DealDetailScreen({ route }: Props) {
                 label="Resolve → buyer refund (arbiter)"
                 disabled={chainBusy || !canResolve}
                 onPress={() =>
-                  void runChain(() =>
-                    runResolveDispute(
-                      wallet.connection,
-                      wallet.arbiter!,
-                      bundle,
-                      false,
-                    ),
-                  )
+                  void runChain(async () => {
+                    if (canResolveLocal) {
+                      return runResolveDispute(
+                        wallet.connection,
+                        wallet.arbiter!,
+                        bundle,
+                        false,
+                      );
+                    }
+                    return runResolveDisputeMwa(wallet.connection, bundle, false);
+                  })
                 }
               />
 

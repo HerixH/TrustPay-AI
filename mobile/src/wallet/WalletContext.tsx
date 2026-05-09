@@ -9,7 +9,9 @@ import {
 } from "react";
 import { Connection, Keypair, PublicKey } from "@solana/web3.js";
 import bs58 from "bs58";
+import { Platform } from "react-native";
 import { SOLANA_RPC_URL } from "../constants";
+import { authorizeMobileWalletPubkey } from "../solana/mwaSession";
 import {
   walletStorageDelete,
   walletStorageGet,
@@ -20,6 +22,7 @@ import { keypairFromImport } from "./keypairImport";
 const K_PRIMARY = "trustpay_wallet_primary_v1";
 const K_COSIGN = "trustpay_wallet_cosigner_v1";
 const K_ARBITER = "trustpay_wallet_arbiter_v1";
+const K_MWA_PUBKEY = "trustpay_mwa_linked_pubkey_v1";
 
 function encodeSecret(k: Keypair): string {
   return bs58.encode(k.secretKey);
@@ -35,6 +38,8 @@ export type WalletContextValue = {
   primary: Keypair | null;
   coSigner: Keypair | null;
   arbiter: Keypair | null;
+  /** Phantom / other MWA wallet pubkey linked on Android (dev client only). */
+  mobileWalletPubkey: PublicKey | null;
   shortAddr: (pk: PublicKey) => string;
   generatePrimary: () => Promise<void>;
   importPrimary: (secretBs58: string) => Promise<void>;
@@ -45,6 +50,9 @@ export type WalletContextValue = {
   generateArbiter: () => Promise<void>;
   importArbiter: (secretBs58: string) => Promise<void>;
   clearArbiter: () => Promise<void>;
+  /** Authorize once via Mobile Wallet Adapter; pubkey is stored for matching deal roles. */
+  linkMobileWallet: () => Promise<void>;
+  unlinkMobileWallet: () => Promise<void>;
 };
 
 const WalletContext = createContext<WalletContextValue | null>(null);
@@ -57,18 +65,28 @@ export function WalletProvider({ children }: { children: ReactNode }) {
   const [primary, setPrimary] = useState<Keypair | null>(null);
   const [coSigner, setCoSigner] = useState<Keypair | null>(null);
   const [arbiter, setArbiter] = useState<Keypair | null>(null);
+  const [mobileWalletPubkey, setMobileWalletPubkey] =
+    useState<PublicKey | null>(null);
 
   useEffect(() => {
     void (async () => {
       try {
-        const [p, c, a] = await Promise.all([
+        const [p, c, a, m] = await Promise.all([
           walletStorageGet(K_PRIMARY),
           walletStorageGet(K_COSIGN),
           walletStorageGet(K_ARBITER),
+          walletStorageGet(K_MWA_PUBKEY),
         ]);
         if (p) setPrimary(decodeSecret(p));
         if (c) setCoSigner(decodeSecret(c));
         if (a) setArbiter(decodeSecret(a));
+        if (m?.trim()) {
+          try {
+            setMobileWalletPubkey(new PublicKey(m.trim()));
+          } catch {
+            await walletStorageDelete(K_MWA_PUBKEY);
+          }
+        }
       } catch {
         /* storage unavailable */
       }
@@ -131,12 +149,29 @@ export function WalletProvider({ children }: { children: ReactNode }) {
     setArbiter(null);
   }, []);
 
+  const linkMobileWallet = useCallback(async () => {
+    if (Platform.OS !== "android") {
+      throw new Error(
+        "Mobile Wallet Adapter is supported on Android with a custom dev build (not Expo Go).",
+      );
+    }
+    const pk = await authorizeMobileWalletPubkey();
+    await walletStorageSet(K_MWA_PUBKEY, pk.toBase58());
+    setMobileWalletPubkey(pk);
+  }, []);
+
+  const unlinkMobileWallet = useCallback(async () => {
+    await walletStorageDelete(K_MWA_PUBKEY);
+    setMobileWalletPubkey(null);
+  }, []);
+
   const value = useMemo<WalletContextValue>(
     () => ({
       connection,
       primary,
       coSigner,
       arbiter,
+      mobileWalletPubkey,
       shortAddr,
       generatePrimary,
       importPrimary,
@@ -147,6 +182,8 @@ export function WalletProvider({ children }: { children: ReactNode }) {
       generateArbiter,
       importArbiter,
       clearArbiter,
+      linkMobileWallet,
+      unlinkMobileWallet,
     }),
     [
       arbiter,
@@ -162,7 +199,10 @@ export function WalletProvider({ children }: { children: ReactNode }) {
       importCoSigner,
       importPrimary,
       primary,
+      mobileWalletPubkey,
       shortAddr,
+      linkMobileWallet,
+      unlinkMobileWallet,
     ],
   );
 
