@@ -24,19 +24,33 @@ fn env_non_empty_trimmed(key: &str, default: &str) -> String {
         .unwrap_or_else(|| default.to_string())
 }
 
+/** Trim UTF-8 BOM left by some editors when saving `.env`. */
+fn strip_bom(s: &str) -> &str {
+    s.strip_prefix('\u{FEFF}').unwrap_or(s)
+}
+
 /** Trim + strip accidental quotes; empty means None. */
 fn env_secret(key: &str) -> Option<String> {
     let raw = std::env::var(key).ok()?;
-    let t = raw.trim();
+    let t = strip_bom(raw.trim());
     if t.is_empty() {
         return None;
     }
     let u = if t.len() >= 2 && t.starts_with('"') && t.ends_with('"') {
-        t[1..t.len() - 1].trim().to_string()
+        strip_bom(t[1..t.len() - 1].trim()).to_string()
     } else {
         t.to_string()
     };
     if u.is_empty() { None } else { Some(u) }
+}
+
+fn warn_if_elevenlabs_key_suspicious(key: &str) {
+    if !key.starts_with("sk_") {
+        tracing::warn!(
+            "ELEVENLABS_API_KEY should start with \"sk_\" (user key from ElevenLabs → API keys). \
+             If ElevenLabs returns invalid_api_key, create a new key and set it in Railway / backend/.env with no extra characters."
+        );
+    }
 }
 
 #[tokio::main]
@@ -58,6 +72,9 @@ async fn main() -> Result<()> {
 
     let openai_key = env_secret("OPENAI_API_KEY");
     let eleven_key = env_secret("ELEVENLABS_API_KEY");
+    if let Some(ref k) = eleven_key {
+        warn_if_elevenlabs_key_suspicious(k);
+    }
     let eleven_voice_id =
         env_non_empty_trimmed("ELEVENLABS_VOICE_ID", "21m00Tcm4TlvDq8ikWAM");
     let eleven_model_id =
