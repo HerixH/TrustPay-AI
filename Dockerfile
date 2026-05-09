@@ -16,7 +16,7 @@ COPY --from=builder /app/backend/target/release/trustpay-api /usr/local/bin/trus
 ENV HOST=0.0.0.0
 ENV PORT=8787
 ENV DATABASE_PATH=/data/trustpay.sqlite
-VOLUME ["/data"]
+# No Docker VOLUME — Railway rejects VOLUME; add a Railway Volume mounted at /data in the dashboard for persistence.
 EXPOSE 8787
 WORKDIR /data
 CMD ["trustpay-api"]
