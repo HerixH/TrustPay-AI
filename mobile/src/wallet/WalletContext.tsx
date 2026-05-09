@@ -8,9 +8,14 @@ import {
   useState,
 } from "react";
 import { Connection, Keypair, PublicKey } from "@solana/web3.js";
-import * as SecureStore from "expo-secure-store";
 import bs58 from "bs58";
 import { SOLANA_RPC_URL } from "../constants";
+import {
+  walletStorageDelete,
+  walletStorageGet,
+  walletStorageSet,
+} from "./walletStorage";
+import { keypairFromImport } from "./keypairImport";
 
 const K_PRIMARY = "trustpay_wallet_primary_v1";
 const K_COSIGN = "trustpay_wallet_cosigner_v1";
@@ -34,8 +39,10 @@ export type WalletContextValue = {
   generatePrimary: () => Promise<void>;
   importPrimary: (secretBs58: string) => Promise<void>;
   clearPrimary: () => Promise<void>;
+  generateCoSigner: () => Promise<void>;
   importCoSigner: (secretBs58: string) => Promise<void>;
   clearCoSigner: () => Promise<void>;
+  generateArbiter: () => Promise<void>;
   importArbiter: (secretBs58: string) => Promise<void>;
   clearArbiter: () => Promise<void>;
 };
@@ -55,15 +62,15 @@ export function WalletProvider({ children }: { children: ReactNode }) {
     void (async () => {
       try {
         const [p, c, a] = await Promise.all([
-          SecureStore.getItemAsync(K_PRIMARY),
-          SecureStore.getItemAsync(K_COSIGN),
-          SecureStore.getItemAsync(K_ARBITER),
+          walletStorageGet(K_PRIMARY),
+          walletStorageGet(K_COSIGN),
+          walletStorageGet(K_ARBITER),
         ]);
         if (p) setPrimary(decodeSecret(p));
         if (c) setCoSigner(decodeSecret(c));
         if (a) setArbiter(decodeSecret(a));
       } catch {
-        /* secure store unavailable (e.g. simulator edge cases) */
+        /* storage unavailable */
       }
     })();
   }, []);
@@ -75,40 +82,52 @@ export function WalletProvider({ children }: { children: ReactNode }) {
 
   const generatePrimary = useCallback(async () => {
     const k = Keypair.generate();
-    await SecureStore.setItemAsync(K_PRIMARY, encodeSecret(k));
+    await walletStorageSet(K_PRIMARY, encodeSecret(k));
     setPrimary(k);
   }, []);
 
   const importPrimary = useCallback(async (secretBs58: string) => {
-    const k = decodeSecret(secretBs58.trim());
-    await SecureStore.setItemAsync(K_PRIMARY, encodeSecret(k));
+    const k = keypairFromImport(secretBs58);
+    await walletStorageSet(K_PRIMARY, encodeSecret(k));
     setPrimary(k);
   }, []);
 
   const clearPrimary = useCallback(async () => {
-    await SecureStore.deleteItemAsync(K_PRIMARY);
+    await walletStorageDelete(K_PRIMARY);
     setPrimary(null);
   }, []);
 
   const importCoSigner = useCallback(async (secretBs58: string) => {
-    const k = decodeSecret(secretBs58.trim());
-    await SecureStore.setItemAsync(K_COSIGN, encodeSecret(k));
+    const k = keypairFromImport(secretBs58);
+    await walletStorageSet(K_COSIGN, encodeSecret(k));
+    setCoSigner(k);
+  }, []);
+
+  const generateCoSigner = useCallback(async () => {
+    const k = Keypair.generate();
+    await walletStorageSet(K_COSIGN, encodeSecret(k));
     setCoSigner(k);
   }, []);
 
   const clearCoSigner = useCallback(async () => {
-    await SecureStore.deleteItemAsync(K_COSIGN);
+    await walletStorageDelete(K_COSIGN);
     setCoSigner(null);
   }, []);
 
   const importArbiter = useCallback(async (secretBs58: string) => {
-    const k = decodeSecret(secretBs58.trim());
-    await SecureStore.setItemAsync(K_ARBITER, encodeSecret(k));
+    const k = keypairFromImport(secretBs58);
+    await walletStorageSet(K_ARBITER, encodeSecret(k));
+    setArbiter(k);
+  }, []);
+
+  const generateArbiter = useCallback(async () => {
+    const k = Keypair.generate();
+    await walletStorageSet(K_ARBITER, encodeSecret(k));
     setArbiter(k);
   }, []);
 
   const clearArbiter = useCallback(async () => {
-    await SecureStore.deleteItemAsync(K_ARBITER);
+    await walletStorageDelete(K_ARBITER);
     setArbiter(null);
   }, []);
 
@@ -122,8 +141,10 @@ export function WalletProvider({ children }: { children: ReactNode }) {
       generatePrimary,
       importPrimary,
       clearPrimary,
+      generateCoSigner,
       importCoSigner,
       clearCoSigner,
+      generateArbiter,
       importArbiter,
       clearArbiter,
     }),
@@ -134,6 +155,8 @@ export function WalletProvider({ children }: { children: ReactNode }) {
       clearPrimary,
       coSigner,
       connection,
+      generateArbiter,
+      generateCoSigner,
       generatePrimary,
       importArbiter,
       importCoSigner,

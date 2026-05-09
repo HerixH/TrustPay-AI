@@ -1,5 +1,5 @@
 import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -15,6 +15,7 @@ import {
 } from "react-native";
 import { PublicKey } from "@solana/web3.js";
 import { Audio } from "expo-av";
+import { File, Paths } from "expo-file-system";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import {
@@ -62,6 +63,7 @@ export function DealDetailScreen({ route }: Props) {
   const [chainBusy, setChainBusy] = useState(false);
   const [escrowStatus, setEscrowStatus] = useState<string | null>(null);
   const [err, setErr] = useState<string | null>(null);
+  const voiceSoundRef = useRef<Audio.Sound | null>(null);
 
   const load = useCallback(async () => {
     setErr(null);
@@ -139,21 +141,57 @@ export function DealDetailScreen({ route }: Props) {
 
   const playVoice = async () => {
     setBusy(true);
+    setErr(null);
+    let cleanupFile: (() => void) | undefined;
     try {
+      if (voiceSoundRef.current) {
+        try {
+          await voiceSoundRef.current.unloadAsync();
+        } catch {
+          /* interrupted or already unloaded */
+        }
+        voiceSoundRef.current = null;
+      }
+
       const res = await voiceContract(dealId);
       if (!res.audio_base64) {
         setErr(res.note || "No audio — set ELEVENLABS_API_KEY on the API.");
         return;
       }
-      const uri = `data:audio/mpeg;base64,${res.audio_base64}`;
+      const b64 = res.audio_base64;
+
+      let uri: string;
+      if (Platform.OS === "web") {
+        uri = `data:audio/mpeg;base64,${b64}`;
+      } else {
+        try {
+          const file = new File(Paths.cache, `voice-contract-${Date.now()}.mp3`);
+          file.write(b64, { encoding: "base64" });
+          uri = file.uri;
+          cleanupFile = () => {
+            try {
+              if (file.exists) file.delete();
+            } catch {
+              /* cache cleanup is best-effort */
+            }
+          };
+        } catch {
+          uri = `data:audio/mpeg;base64,${b64}`;
+        }
+      }
+
       await Audio.setAudioModeAsync({ playsInSilentModeIOS: true });
       const { sound } = await Audio.Sound.createAsync({ uri }, { shouldPlay: true });
+      voiceSoundRef.current = sound;
       sound.setOnPlaybackStatusUpdate((st) => {
         if (st.isLoaded && st.didJustFinish) {
           void sound.unloadAsync();
+          voiceSoundRef.current = null;
+          cleanupFile?.();
         }
       });
     } catch (e) {
+      cleanupFile?.();
       setErr(e instanceof Error ? e.message : String(e));
     } finally {
       setBusy(false);

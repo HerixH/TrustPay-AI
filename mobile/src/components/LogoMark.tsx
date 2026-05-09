@@ -1,6 +1,6 @@
 import { StyleSheet, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { COLORS, GRADIENT_RAINBOW } from '../theme';
+import { COLORS, GRADIENT_LOGO_RING } from '../theme';
 
 type Props = {
   size?: number;
@@ -10,7 +10,8 @@ export function LogoMark({ size = 40 }: Props) {
   const r = size * 0.2;
   return (
     <LinearGradient
-      colors={[...GRADIENT_RAINBOW]}
+      colors={[...GRADIENT_LOGO_RING]}
+      locations={[0, 0.25, 0.5, 0.75, 1]}
       start={{ x: 0, y: 0 }}
       end={{ x: 1, y: 1 }}
       style={[styles.outer, { width: size, height: size, borderRadius: r }]}
@@ -52,6 +53,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   dot: {
-    backgroundColor: COLORS.text,
+    backgroundColor: COLORS.accentMint,
   },
 });

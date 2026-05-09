@@ -1,6 +1,6 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { COLORS, GRADIENT_CTA, LAYOUT } from '../theme';
+import { COLORS, GRADIENT_CTA, GRADIENT_CTA_LOCATIONS, LAYOUT } from '../theme';
 import { LogoMark } from './LogoMark';
 
 /** Toolbar height — use for vertical alignment (iOS-style 44pt) */
@@ -61,6 +61,7 @@ export function AppHeader({
           >
             <LinearGradient
               colors={[...GRADIENT_CTA]}
+              locations={[...GRADIENT_CTA_LOCATIONS]}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 1 }}
               style={styles.ctaBorder}

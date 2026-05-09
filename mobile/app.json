@@ -5,12 +5,12 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
-    "userInterfaceStyle": "light",
+    "userInterfaceStyle": "dark",
     "newArchEnabled": true,
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
-      "backgroundColor": "#121212"
+      "backgroundColor": "#030014"
     },
     "ios": {
       "supportsTablet": true
@@ -18,7 +18,7 @@
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#121212"
+        "backgroundColor": "#030014"
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false
@@ -30,6 +30,9 @@
       "trustpayApiUrl": "",
       "solanaRpcUrl": "https://api.devnet.solana.com",
       "programId": "Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFDSn"
-    }
+    },
+    "plugins": [
+      "expo-secure-store"
+    ]
   }
 }

@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { StyleSheet, Text, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { COLORS, GRADIENT_CTA } from '../theme';
+import { COLORS, GRADIENT_CTA, GRADIENT_CTA_LOCATIONS } from '../theme';
 import { GlassCard } from './GlassCard';
 
 /** Minimal hero — no illustration assets */
@@ -11,6 +11,7 @@ export function HeroPanel() {
       <View style={styles.row}>
         <LinearGradient
           colors={[...GRADIENT_CTA]}
+          locations={[...GRADIENT_CTA_LOCATIONS]}
           start={{ x: 0, y: 1 }}
           end={{ x: 0, y: 0 }}
           style={styles.accentStripe}

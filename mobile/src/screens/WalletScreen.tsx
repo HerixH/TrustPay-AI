@@ -53,7 +53,7 @@ export function WalletScreen() {
           <Text style={styles.kicker}>Solana · devnet</Text>
           <Text style={styles.title}>Wallets</Text>
           <Text style={styles.hint}>
-            Keys stay on-device (SecureStore). Generate or paste a base58 secret
+            Keys stay on-device (SecureStore on mobile; browser storage on web). Generate or paste a base58 secret
             key (Solana CLI / Phantom export). Fund SOL on devnet before on-chain
             steps.
           </Text>
@@ -91,7 +91,7 @@ export function WalletScreen() {
             <TextInput
               value={importPrimary}
               onChangeText={setImportPrimary}
-              placeholder="Paste base58 secret to import"
+              placeholder="Base58 private key or keypair JSON [1,2,...]"
               placeholderTextColor={COLORS.textFaint}
               autoCapitalize="none"
               style={styles.input}
@@ -101,7 +101,10 @@ export function WalletScreen() {
                 label="Import primary"
                 onPress={() =>
                   void run(async () => {
-                    if (!importPrimary.trim()) return;
+                    if (!importPrimary.trim()) {
+                      Alert.alert("Import", "Paste a base58 secret key first.");
+                      return;
+                    }
                     await w.importPrimary(importPrimary);
                     setImportPrimary("");
                   })
@@ -115,26 +118,12 @@ export function WalletScreen() {
             <Text style={styles.addr}>
               {w.coSigner
                 ? w.shortAddr(w.coSigner.publicKey)
-                : "Not set"}
+                : "Not set — generate or import"}
             </Text>
-            <TextInput
-              value={importCo}
-              onChangeText={setImportCo}
-              placeholder="Seller secret (base58)"
-              placeholderTextColor={COLORS.textFaint}
-              autoCapitalize="none"
-              style={styles.input}
-            />
             <View style={styles.btnStack}>
               <Btn
-                label="Import co-signer"
-                onPress={() =>
-                  void run(async () => {
-                    if (!importCo.trim()) return;
-                    await w.importCoSigner(importCo);
-                    setImportCo("");
-                  })
-                }
+                label={busy ? "…" : "Generate"}
+                onPress={() => void run(w.generateCoSigner)}
                 disabled={busy}
               />
               <Btn
@@ -144,30 +133,42 @@ export function WalletScreen() {
                 disabled={busy || !w.coSigner}
               />
             </View>
-          </WalletSection>
-
-          <WalletSection title="Arbiter (resolve dispute)">
-            <Text style={styles.addr}>
-              {w.arbiter ? w.shortAddr(w.arbiter.publicKey) : "Not set"}
-            </Text>
             <TextInput
-              value={importArb}
-              onChangeText={setImportArb}
-              placeholder="Arbiter secret (base58)"
+              value={importCo}
+              onChangeText={setImportCo}
+              placeholder="Seller: base58 or CLI keypair JSON"
               placeholderTextColor={COLORS.textFaint}
               autoCapitalize="none"
               style={styles.input}
             />
-            <View style={styles.btnStack}>
+            <View style={styles.btnStackTight}>
               <Btn
-                label="Import arbiter"
+                label="Import co-signer"
                 onPress={() =>
                   void run(async () => {
-                    if (!importArb.trim()) return;
-                    await w.importArbiter(importArb);
-                    setImportArb("");
+                    if (!importCo.trim()) {
+                      Alert.alert("Import", "Paste the co-signer base58 secret first.");
+                      return;
+                    }
+                    await w.importCoSigner(importCo);
+                    setImportCo("");
                   })
                 }
+                disabled={busy}
+              />
+            </View>
+          </WalletSection>
+
+          <WalletSection title="Arbiter (resolve dispute)">
+            <Text style={styles.addr}>
+              {w.arbiter
+                ? w.shortAddr(w.arbiter.publicKey)
+                : "Not set — generate or import"}
+            </Text>
+            <View style={styles.btnStack}>
+              <Btn
+                label={busy ? "…" : "Generate"}
+                onPress={() => void run(w.generateArbiter)}
                 disabled={busy}
               />
               <Btn
@@ -175,6 +176,30 @@ export function WalletScreen() {
                 outline
                 onPress={() => void run(w.clearArbiter)}
                 disabled={busy || !w.arbiter}
+              />
+            </View>
+            <TextInput
+              value={importArb}
+              onChangeText={setImportArb}
+              placeholder="Arbiter: base58 or CLI keypair JSON"
+              placeholderTextColor={COLORS.textFaint}
+              autoCapitalize="none"
+              style={styles.input}
+            />
+            <View style={styles.btnStackTight}>
+              <Btn
+                label="Import arbiter"
+                onPress={() =>
+                  void run(async () => {
+                    if (!importArb.trim()) {
+                      Alert.alert("Import", "Paste the arbiter base58 secret first.");
+                      return;
+                    }
+                    await w.importArbiter(importArb);
+                    setImportArb("");
+                  })
+                }
+                disabled={busy}
               />
             </View>
           </WalletSection>

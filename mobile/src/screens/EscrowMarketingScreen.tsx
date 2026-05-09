@@ -2,6 +2,7 @@ import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 import { useEffect, useState } from 'react';
 import {
+  Alert,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -18,7 +19,7 @@ import { LiveHeader } from '../components/LiveHeader';
 import { SparklineBars } from '../components/SparklineBars';
 import type { RootTabParamList } from '../navigation/types';
 import { screenScroll } from '../styles/screenScroll';
-import { COLORS, GRADIENT_CTA, LAYOUT } from '../theme';
+import { COLORS, GRADIENT_CTA, GRADIENT_CTA_LOCATIONS, LAYOUT } from '../theme';
 
 type Props = BottomTabScreenProps<RootTabParamList, 'Escrow'>;
 
@@ -133,6 +134,7 @@ export function EscrowMarketingScreen({ navigation }: Props) {
             <View style={styles.heroRow}>
               <LinearGradient
                 colors={[...GRADIENT_CTA]}
+                locations={[...GRADIENT_CTA_LOCATIONS]}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 1 }}
                 style={styles.heroIconRing}
@@ -195,10 +197,54 @@ export function EscrowMarketingScreen({ navigation }: Props) {
           </GlassCard>
 
           <Text style={styles.sectionLabel}>CAPABILITIES</Text>
+          <Text style={styles.capabilitiesHint}>
+            Tap a row to jump to where that feature runs in the demo (API must be running for live data).
+          </Text>
           <View style={styles.featureGrid}>
             {FEATURES.map((f) => (
               <Pressable
                 key={f.key}
+                onPress={() => {
+                  switch (f.key) {
+                    case 'escrow':
+                      navigation.navigate('Home', { screen: 'DealCreate' });
+                      Alert.alert(
+                        'Smart escrow',
+                        'Create a deal, then open it to initialize escrow and manage releases on Solana devnet.',
+                      );
+                      break;
+                    case 'fraud':
+                      navigation.navigate('Home', { screen: 'Deals' });
+                      Alert.alert(
+                        'Fraud detection',
+                        'Open a deal: messages are stored for analysis. In the deal room, use Run risk analysis.',
+                      );
+                      break;
+                    case 'risk':
+                      navigation.navigate('Home', { screen: 'Deals' });
+                      Alert.alert(
+                        'Risk scoring',
+                        'Open a deal to see the last risk tier. Tap Run risk analysis to refresh from chat.',
+                      );
+                      break;
+                    case 'voice':
+                      navigation.navigate('Home', { screen: 'Deals' });
+                      Alert.alert(
+                        'Voice contract (ElevenLabs)',
+                        'Open a deal, then tap Voice contract. Requires the TrustPay API on :8787 with ELEVENLABS_API_KEY in backend/.env.',
+                      );
+                      break;
+                    case 'disputes':
+                      navigation.navigate('Home', { screen: 'Deals' });
+                      Alert.alert(
+                        'Dispute resolution',
+                        'Open a funded deal: use on-chain dispute and resolution actions from the deal room.',
+                      );
+                      break;
+                    default:
+                      Alert.alert(f.label, f.sub);
+                  }
+                }}
                 android_ripple={{ color: 'rgba(255,255,255,0.06)' }}
                 style={({ pressed }) => [
                   styles.featureCard,
@@ -206,7 +252,7 @@ export function EscrowMarketingScreen({ navigation }: Props) {
                 ]}
               >
                 <LinearGradient
-                  colors={['rgba(255,255,255,0.12)', 'rgba(255,255,255,0.04)']}
+                  colors={['rgba(153, 69, 255, 0.2)', 'rgba(20, 241, 149, 0.08)']}
                   start={{ x: 0, y: 0 }}
                   end={{ x: 1, y: 1 }}
                   style={styles.featureIconBG}
@@ -232,6 +278,7 @@ export function EscrowMarketingScreen({ navigation }: Props) {
           >
             <LinearGradient
               colors={[...GRADIENT_CTA]}
+              locations={[...GRADIENT_CTA_LOCATIONS]}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 0 }}
               style={styles.feedLinkGrad}
@@ -410,11 +457,18 @@ const styles = StyleSheet.create({
   sectionLabel: {
     alignSelf: 'flex-start',
     marginTop: 12,
-    marginBottom: 14,
+    marginBottom: 8,
     color: COLORS.textMuted,
     fontSize: 11,
     letterSpacing: 2,
     fontWeight: '700',
+  },
+  capabilitiesHint: {
+    color: COLORS.textFaint,
+    fontSize: 12,
+    lineHeight: 18,
+    marginBottom: 14,
+    paddingRight: 8,
   },
   featureGrid: {
     marginTop: 0,

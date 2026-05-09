@@ -20,9 +20,13 @@ const Tab = createBottomTabNavigator<RootTabParamList>();
 
 const stackScreenOptions = {
   contentStyle: { backgroundColor: COLORS.bg },
-  headerStyle: { backgroundColor: COLORS.surface },
+  headerStyle: {
+    backgroundColor: COLORS.surface,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.tabBarBorder,
+  },
   headerTintColor: COLORS.text,
-  headerTitleStyle: { color: COLORS.text },
+  headerTitleStyle: { color: COLORS.text, fontWeight: "700" as const },
 } as const;
 
 function HomeStackNavigator() {
@@ -60,7 +64,8 @@ function MainTabs() {
         headerShown: false,
         tabBarStyle: {
           backgroundColor: COLORS.tabBar,
-          borderTopColor: COLORS.borderSubtle,
+          borderTopWidth: 1,
+          borderTopColor: COLORS.tabBarBorder,
         },
         tabBarActiveTintColor: COLORS.accentMint,
         tabBarInactiveTintColor: COLORS.textFaint,

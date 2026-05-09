@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 import { StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { COLORS, GRADIENT_CTA, LAYOUT } from '../theme';
+import { COLORS, GRADIENT_SOLANA_BAR, LAYOUT } from '../theme';
 
 type Props = {
   children: ReactNode;
@@ -20,7 +20,8 @@ export function GlassCard({
     <View style={[styles.wrap, style]}>
       {accent === 'top' ? (
         <LinearGradient
-          colors={[...GRADIENT_CTA]}
+          colors={[...GRADIENT_SOLANA_BAR]}
+          locations={[0, 0.5, 1]}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 0 }}
           style={styles.accentBar}
@@ -40,7 +41,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   accentBar: {
-    height: 3,
+    height: 4,
     width: '100%',
   },
   inner: {

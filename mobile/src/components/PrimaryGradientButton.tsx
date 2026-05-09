@@ -1,7 +1,12 @@
 import type { ReactNode } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { COLORS, GRADIENT_CTA, LAYOUT } from '../theme';
+import {
+  COLORS,
+  GRADIENT_CTA,
+  GRADIENT_CTA_LOCATIONS,
+  LAYOUT,
+} from '../theme';
 
 type Props = {
   label: string;
@@ -18,6 +23,7 @@ export function PrimaryGradientButton({ label, onPress, icon }: Props) {
     >
       <LinearGradient
         colors={[...GRADIENT_CTA]}
+        locations={[...GRADIENT_CTA_LOCATIONS]}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         style={styles.grad}

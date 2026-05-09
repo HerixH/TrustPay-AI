@@ -46,6 +46,7 @@ export function SparklineBars() {
             >
               <LinearGradient
                 colors={[...GRADIENT_BAR_RISK_INDEX]}
+                locations={[0, 0.22, 0.45, 0.72, 1]}
                 start={{ x: 0.5, y: 1 }}
                 end={{ x: 0.5, y: 0 }}
                 style={StyleSheet.absoluteFill}
