@@ -1,6 +1,6 @@
 # TrustPay AI
 
-**Team Chain Minds** — Ropafadzo Tambara · Surajo Hussain · Diana Ndlovu · Herix Hangandu  
+**Team Chain Minds** — Ropafadzo Tambara · Surajo Hussain · Diana Ndhlovu · Herix Hangandu  
 
 ## Problem
 
@@ -159,72 +159,87 @@ npx expo start
 
 ### 3. Deploy escrow (optional)
 
+Install **[Solana CLI](https://solana.com/docs/cli/install-solana-cli-tools)** and **[Anchor](https://www.anchor-lang.com/docs/installation)** first (they were not available in the automated agent environment). On Windows, use an elevated or normal shell where both commands are on **`PATH`**.
+
+From the **repository root** (where [`Anchor.toml`](Anchor.toml) lives):
+
 ```bash
-# after installing Solana CLI + Anchor
-cd programs/trustpay_escrow
 solana config set --url devnet
-anchor keys list   # or anchor keys sync
+solana airdrop 2   # repeat / use faucet if rate-limited
+anchor keys sync   # aligns declare_id + program keypair (see docs/SOLANA_PROGRAM.md)
 anchor build
 anchor deploy --provider.cluster devnet
 ```
 
-Mirror the deployed id into **`backend/.env`** and **`mobile/app.json`**.
+**Windows:** after [`Cargo.toml`](Cargo.toml) workspace setup, you can run **`scripts/deploy-escrow-devnet.ps1`** from repo root (same steps as above).
+
+Mirror the deployed program id into **`backend/.env`** (`TRUSTPAY_PROGRAM_ID`) and **`mobile/app.json`** (`expo.extra.programId`).
 
 ---
 
-## Hosted API and Solana dApp Store
+## Hosted API and Solana Mobile dApp Store (Solana‑only shipping)
 
-Use this checklist when **hosting the backend** for real devices and submitting the Expo app to **Solana Mobile** (and optionally **Google Play**). Vercel and similar static/serverless hosts are not a substitute for container-style hosting of Axum here; Railway, Fly.io, Render, or your own VPS with this Dockerfile typically are.
+Ship **TrustPay AI** with a **public backend** plus **one signed Android APK** to [**Solana Mobile**](https://docs.solanamobile.com/dapp-store) — no Play Store required.
 
 ### 1. Deploy the Rust API
 
-- Build from [`backend/Dockerfile`](backend/Dockerfile) with context **`backend/`** (matches [`docker-compose.yml`](docker-compose.yml)).
+- **Docker Compose / local image:** build from [`backend/Dockerfile`](backend/Dockerfile) with context **`backend/`** (see [`docker-compose.yml`](docker-compose.yml)).
+- **Railway from GitHub monorepo root:** do **not** use **`npm start`** (that runs Expo and fails with **`expo: not found`**). Use the root **[`Dockerfile.api`](Dockerfile.api)** and **[`railway.toml`](railway.toml)** so Railway builds the Rust binary, or set **Root Directory** to **`backend`** and use **`backend/Dockerfile`** only.
 - Expose **`PORT`** from your host (**Railway** sets **`PORT`** automatically; the server reads it).
 - **Persist SQLite:** mount a disk at **`/data`** and set **`DATABASE_PATH=/data/trustpay.sqlite`** — without this, redeployments reset the DB.
 - Set **`SOLANA_RPC_URL`**, **`TRUSTPAY_PROGRAM_ID`**, optional **`OPENAI_API_KEY`** / **`ELEVENLABS_*`**, copied from **`backend/.env.example`**.
 
-Confirm **`GET https://YOUR-ORIGIN/health`** returns **`ok`** from the public internet before shipping the mobile build.
+Confirm **`GET https://YOUR-ORIGIN/health`** returns **`ok`** from the public internet before you build production mobile.
 
-### 2. Aim the compiled app at the hosted API
+### 2. Aim the Expo build at the hosted API
 
-For **production / EAS** builds only (not dev):
+For **every EAS / release** APK (not Expo Go dev):
 
 ```bash
 cd mobile
-eas secret:create --scope project --name EXPO_PUBLIC_TRUSTPAY_API_URL --value https://YOUR-ORIGIN
+npm exec eas-cli -- env:create production --name EXPO_PUBLIC_TRUSTPAY_API_URL --value https://YOUR-ORIGIN --type string --visibility sensitive --scope project --force --non-interactive
 ```
 
-Rebuild after changing secrets (`npm run eas:android:store` etc.). Omitting this yields an empty **`API_BASE`** at runtime — the app cannot load deals/chat from your Railway host.
+Or from repo root after **`$env:TRUSTPAY_API_URL="https://YOUR-ORIGIN"`**: **`npm run eas:secret:set-api`** (writes production / preview / development).
 
-### 3. Produce APK / AAB for stores
+Update the secret if your API URL moves, then **re-run the APK build** (step 3). Omitting **`EXPO_PUBLIC_TRUSTPAY_API_URL`** gives an empty **`API_BASE`** in release — listings will open to a silent API failure.
 
-From **`mobile/`**:
+### 3. Build signed APK (Solana storefront format)
 
-| Goal | Script / command |
-|------|-------------------|
-| **AAB** (modern Google Play uploads) | `npm run eas:android:store` (`production` profile) |
-| **APK** (sideload, some forms, testers) | `npm run eas:android:apk` or `eas:android:preview` |
+[**Solana requires a signed APK**](https://docs.solanamobile.com/dapp-store/build-and-sign-an-apk) (AAB only matters if you adopt Google Play later — you can skip it).
 
-Ensure **`android.package`** and **`ios.bundleIdentifier`** in [`mobile/app.json`](mobile/app.json) match what you declare in each console (**Solana listing package name = `android.package`**).
-
-### 4. Solana Mobile dApp Store (signed APK)
-
-The storefront expects a **signed APK** ([**Build and sign an APK**](https://docs.solanamobile.com/dapp-store/build-and-sign-an-apk)), **not** a Play-style AAB. In this repo, from **`mobile/`**:
+From **`mobile/`** (after **`npm install`**, **`eas-cli`** is local — you do **not** need a global **`eas`** on `PATH`):
 
 ```bash
+npm exec eas login           # once
+npm exec eas build:configure   # once per project clone
 npm run eas:android:dapp-store
-# equivalent: eas build --platform android --profile dapp-store
+# same as: eas build --platform android --profile dapp-store
 ```
 
-Same flow as Expo’s [**EAS Build**](https://docs.expo.dev/build/introduction/): first Android build, EAS can **generate credentials** or you can attach a **`keytool` keystore**. **Critical:** Solana warns that if you **also** publish on **Google Play**, you **must use a separate signing identity** for the dApp Store build — **do not reuse Play’s signing key for the APK you upload to Solana**. Store the keystore and passwords securely; upgrades must use the same key.
+On the **first** Android cloud build, EAS will offer to **generate a keystore** or let you paste an existing **`keytool`** keystore. **Back up Expo’s credentials export + any keystore/passwords.** Every future storefront update **must** be signed with the **same release key**.
 
-Verify the artifact after download:
+After the build completes, download the **APK** from the Expo build page.
+
+**(Optional sanity check)** with Android SDK `apksigner`:
 
 ```bash
-apksigner verify --print-certs path/to/app-release.apk
+apksigner verify --print-certs path/to/downloaded.apk
 ```
 
-Continue with storefront submission ([Submit your app](https://docs.solanamobile.com/dapp-store/submit-new-app)) plus metadata/screenshots (`mobile/assets/`). Google Play stays optional (`npm run eas:android:store` + **`eas submit`**), using your **AAB** track and distinct signing from Solana where required.
+### 4. Matching package name & listing assets
+
+In [`mobile/app.json`](mobile/app.json), **`android.package`** (currently `com.chainminds.trustpayai`) must **exactly match** the **Android package name** you enter in Solana Mobile’s storefront form — change it once before your first storefront build if your team owns a different reverse-DNS ID.
+
+Reuse the assets already under **`mobile/assets/`** (banner, square graphic, four portrait previews, icon, etc.) and the copy suggestions you finalized (name, subtitle, description, headline).
+
+### 5. Submit on Solana Mobile
+
+Follow **Submit your app** and the checklist in **[dApp Store publishing](https://docs.solanamobile.com/dapp-store/submit-new-app)** — upload **this APK**, complete metadata/screenshots/categories, complete any cryptographic / publisher steps Solana prompts for (**`dApp Store`** CLI tooling is documented in their index [`llms.txt`](https://docs.solanamobile.com/llms.txt)).
+
+---
+
+**(Reference — Google Play only)** If you add Play later, use a **different signing track** than the Solana APK per [Build and sign an APK — Play wording](https://docs.solanamobile.com/dapp-store/build-and-sign-an-apk); you can ignore that while Solana‑only.
 
 ---
 

@@ -1,0 +1,9 @@
+.git
+.github
+**/node_modules
+mobile/
+programs/
+docs/
+docker-compose.yml
+backend/target
+**/trustpay.sqlite

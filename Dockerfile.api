@@ -1,0 +1,22 @@
+# Root Dockerfile for hosts that clone the monorepo and build from repo root (e.g. Railway default context).
+# Local / Compose still use backend/Dockerfile with context ./backend — unchanged.
+
+FROM rust:bookworm AS builder
+RUN apt-get update && apt-get install -y --no-install-recommends pkg-config libssl-dev && rm -rf /var/lib/apt/lists/*
+WORKDIR /app
+COPY backend/Cargo.toml backend/Cargo.toml
+COPY backend/Cargo.lock backend/Cargo.lock
+COPY backend/src backend/src
+WORKDIR /app/backend
+RUN cargo build --release
+
+FROM debian:bookworm-slim
+RUN apt-get update && apt-get install -y ca-certificates && rm -rf /var/lib/apt/lists/*
+COPY --from=builder /app/backend/target/release/trustpay-api /usr/local/bin/trustpay-api
+ENV HOST=0.0.0.0
+ENV PORT=8787
+ENV DATABASE_PATH=/data/trustpay.sqlite
+VOLUME ["/data"]
+EXPOSE 8787
+WORKDIR /data
+CMD ["trustpay-api"]

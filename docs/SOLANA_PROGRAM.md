@@ -8,16 +8,13 @@ Install [Rust](https://rustup.rs/), [Solana CLI](https://solana.com/docs/cli/ins
 
 ### Point `declare_id!` at your keypair
 
-The repo ships with placeholder program id `Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFDSn`. Before devnet deploy:
+The repo ships with placeholder program id `Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFDSn`. Before devnet deploy, from the **repository root** (where `Anchor.toml` is):
 
 ```bash
-cd programs/trustpay_escrow
-anchor keys list
-# If needed:
 anchor keys sync
 ```
 
-This updates `declare_id!` in `src/lib.rs` and `Anchor.toml` program entries.
+This updates `declare_id!` in `programs/trustpay_escrow/src/lib.rs` and `Anchor.toml` program entries from the program keypair under `target/deploy/`.
 
 ### Build
 
@@ -35,8 +32,8 @@ anchor deploy --provider.cluster devnet
 
 Record the deployed program id in:
 
-- [`backend/.env.example`](file:///backend/.env.example) as `TRUSTPAY_PROGRAM_ID`
-- Mobile app environment (React Native constants)
+- [`backend/.env.example`](backend/.env.example) as `TRUSTPAY_PROGRAM_ID`
+- [`mobile/app.json`](../mobile/app.json) → `expo.extra.programId`
 
 ### Instructions (MVP)
 

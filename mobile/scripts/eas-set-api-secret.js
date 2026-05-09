@@ -1,6 +1,8 @@
 /**
- * Push EXPO_PUBLIC_TRUSTPAY_API_URL to EAS for cloud builds.
- * Uses `eas env:create` (current API); legacy `secret:create` needs `--type string` in non-interactive mode.
+ * Set EXPO_PUBLIC_TRUSTPAY_API_URL on EAS (production / preview / development).
+ * Uses `eas env:create` with visibility `sensitive` (required for EXPO_PUBLIC_* — not `secret`).
+ *
+ * If a variable already exists as the wrong type, we delete then recreate.
  *
  * Usage (PowerShell):
  *   $env:TRUSTPAY_API_URL="https://api.your-domain.com"
@@ -24,13 +26,28 @@ if (!url || !/^https:\/\//i.test(url)) {
 }
 
 const mobileRoot = path.resolve(__dirname, "..");
-
-/** Matches default EAS environments so production / preview / dev-client builds all resolve the API. */
 const environments = ["production", "preview", "development"];
 
+function runEas(argv) {
+  return spawnSync("npx", ["eas-cli", ...argv], {
+    stdio: "inherit",
+    shell: true,
+    cwd: mobileRoot,
+  });
+}
+
 for (const envName of environments) {
-  const args = [
-    "eas-cli",
+  console.error(`\n==> Remove existing ${envName} (ok if none)\n`);
+  runEas([
+    "env:delete",
+    envName,
+    "--variable-name",
+    "EXPO_PUBLIC_TRUSTPAY_API_URL",
+    "--non-interactive",
+  ]);
+
+  console.error(`\n==> EAS env:create ${envName}\n`);
+  const r = runEas([
     "env:create",
     envName,
     "--name",
@@ -45,16 +62,10 @@ for (const envName of environments) {
     "project",
     "--force",
     "--non-interactive",
-  ];
-  console.error(`\n==> EAS env:create ${envName}\n`);
-  const r = spawnSync("npx", args, {
-    stdio: "inherit",
-    shell: true,
-    cwd: mobileRoot,
-  });
+  ]);
   if (r.status !== 0) {
     process.exit(r.status === null ? 1 : r.status);
   }
 }
 
-console.error("\nDone. Re-run your EAS build so the new URL is baked into the bundle.\n");
+console.error("\nDone. Start a new EAS build so the URL is embedded.\n");

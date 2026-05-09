@@ -1,0 +1,9 @@
+# Railway (monorepo root): build the Rust API image — do NOT run `npm start` / Expo here.
+# Dashboard: match these settings, or rely on this file if Railway detects it.
+#
+# Also set variables in Railway: TRUSTPAY_PROGRAM_ID, SOLANA_RPC_URL, optional OPENAI_*, ELEVENLABS_*,
+# DATABASE_PATH=/data/trustpay.sqlite, and attach a volume mount on /data for SQLite persistence.
+
+[build]
+builder = "DOCKERFILE"
+dockerfilePath = "Dockerfile.api"
