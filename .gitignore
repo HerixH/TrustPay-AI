@@ -3,3 +3,6 @@ backend/target/
 **/trustpay.sqlite
 **/.DS_Store
 mobile/node_modules/
+.vercel
+.env*.local
+backend/.env

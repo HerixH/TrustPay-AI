@@ -1,5 +1,22 @@
-# Railway: force Docker (Rust API). Root Dockerfile must be named "Dockerfile" for detection.
-# Dashboard override: unset custom Start Command if it still says npm/node.
+# TrustPay API on Railway (repo-root Dockerfile builds `backend/`).
+#
+# Dashboard checklist:
+# 1. Create project → Deploy from GitHub → pick this repo.
+# 2. Railway detects `railway.toml` and builds with the root Dockerfile.
+# 3. Add a Volume: mount path MUST be `/data` (SQLite path below). Without it, data resets on redeploy.
+# 4. Variables (Railway → service → Variables) — copy names from `backend/.env.example`:
+#    - DATABASE_PATH=/data/trustpay.sqlite
+#    - TRUSTPAY_PROGRAM_ID=<match Anchor declare_id + mobile app.json>
+#    - SOLANA_RPC_URL=https://api.devnet.solana.com   (or mainnet-beta when ready)
+#    - OPENAI_API_KEY=            (optional)
+#    - ELEVENLABS_API_KEY=        (optional, for voice-contract MP3)
+#    - ELEVENLABS_VOICE_ID=       (optional)
+#    - ELEVENLABS_MODEL_ID=       (optional)
+#    - RUST_LOG=info,tower_http=warn
+#    Do NOT set PORT in the dashboard unless you know you need to — Railway injects PORT; the API reads it.
+# 5. Generate a public URL (Settings → Networking) and set `extra.trustpayApiUrl` in mobile/app.json for device builds.
+#
+# If a custom Start Command was set for Node/npm, clear it so the Docker CMD runs `trustpay-api`.
 
 [build]
 builder = "DOCKERFILE"
