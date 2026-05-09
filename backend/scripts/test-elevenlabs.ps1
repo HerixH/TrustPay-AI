@@ -10,8 +10,11 @@ $envFile = Join-Path $here "..\.env"
 if (-not $env:ELEVENLABS_API_KEY -and (Test-Path $envFile)) {
     Get-Content $envFile | ForEach-Object {
         if ($_ -match '^\s*ELEVENLABS_API_KEY\s*=\s*(.+)\s*$') {
-            $val = $Matches[1].Trim().Trim('"')
-            $env:ELEVENLABS_API_KEY = $val
+            $raw = $Matches[1].Trim().Trim('"')
+            # Drop inline # comments (unquoted .env lines)
+            $hash = $raw.IndexOf('#')
+            if ($hash -ge 0) { $raw = $raw.Substring(0, $hash).Trim() }
+            $env:ELEVENLABS_API_KEY = $raw
         }
     }
 }
@@ -23,8 +26,12 @@ if (-not $key) {
 }
 
 $key = $key.Trim().Trim([char]0xFEFF)
+if ($key -match '\s') {
+    Write-Host "ERROR: API key contains whitespace or newlines - use a single line value only." -ForegroundColor Red
+    exit 1
+}
 if (-not $key.StartsWith("sk_")) {
-    Write-Host "Warning: key does not start with sk_ - ElevenLabs user keys usually do." -ForegroundColor Yellow
+    Write-Host "Warning: key does not start with sk_ - use a User API key from https://elevenlabs.io (API Keys)." -ForegroundColor Yellow
 }
 
 $uri = "https://api.elevenlabs.io/v1/user"
@@ -37,6 +44,7 @@ try {
     exit 0
 } catch {
     Write-Host "FAILED - ElevenLabs rejected this key." -ForegroundColor Red
+    Write-Host ("(debug: key length={0}, starts with sk_={1})" -f $key.Length, $key.StartsWith("sk_")) -ForegroundColor DarkGray
     Write-Host $_.Exception.Message
     if ($_.ErrorDetails.Message) {
         Write-Host $_.ErrorDetails.Message
