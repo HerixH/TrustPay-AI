@@ -73,9 +73,9 @@ async fn main() -> Result<()> {
     };
 
     tracing::info!(
-        openai_configured,
-        elevenlabs_configured,
-        "optional API keys loaded from env"
+        elevenlabs_voice = elevenlabs_configured,
+        openai_enrich_analyze = openai_configured,
+        "env: ElevenLabs = voice audio; OpenAI = optional analyze enrichment only (omit both if unused)"
     );
     let app = app(state);
 

@@ -241,8 +241,6 @@ export function EscrowMarketingScreen({ navigation }: Props) {
                         'Open a funded deal: use on-chain dispute and resolution actions from the deal room.',
                       );
                       break;
-                    default:
-                      Alert.alert(f.label, f.sub);
                   }
                 }}
                 android_ripple={{ color: 'rgba(255,255,255,0.06)' }}
