@@ -396,7 +396,7 @@ pub async fn voice_contract(
             "deal_id": id,
             "audio_base64": serde_json::Value::Null,
             "script": script,
-            "note": "Set ELEVENLABS_API_KEY to synthesize audio (optional for local dev).",
+            "note": "Voice audio needs ELEVENLABS_API_KEY in backend/.env, then restart the TrustPay API (cargo run). The key is read only at startup.",
         })))
     }
 }

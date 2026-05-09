@@ -35,10 +35,144 @@ import {
   runResolveDispute,
 } from "../solana/escrowFlow";
 import { readEscrowStatus, escrowStatusLabel } from "../solana/parse";
+import { LinearGradient } from "expo-linear-gradient";
 import { useWallet } from "../wallet/WalletContext";
-import { COLORS, LAYOUT } from "../theme";
+import {
+  COLORS,
+  GRADIENT_CTA,
+  GRADIENT_CTA_LOCATIONS,
+  GRADIENT_SOLANA_BAR,
+  LAYOUT,
+} from "../theme";
 
 type Props = NativeStackScreenProps<HomeStackParamList, "DealDetail">;
+
+const chainStyles = StyleSheet.create({
+  gradWrap: {
+    borderRadius: 12,
+    overflow: "hidden",
+  },
+  gradInner: {
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+    alignItems: "center",
+    justifyContent: "center",
+    minHeight: 44,
+  },
+  gradLabel: {
+    color: COLORS.textOnGradient,
+    fontWeight: "700",
+    fontSize: 13,
+    letterSpacing: 0.2,
+  },
+  gradWrapSm: {
+    borderRadius: 10,
+    overflow: "hidden",
+    alignSelf: "flex-end",
+  },
+  gradInnerSm: {
+    paddingVertical: 10,
+    paddingHorizontal: 18,
+    alignItems: "center",
+    justifyContent: "center",
+    minHeight: 40,
+  },
+  gradLabelSm: {
+    color: COLORS.textOnGradient,
+    fontWeight: "800",
+    fontSize: 14,
+  },
+  outWrap: {
+    borderRadius: 12,
+    overflow: "hidden",
+  },
+  outRing: {
+    borderRadius: 12,
+    padding: 1,
+  },
+  outFill: {
+    borderRadius: 11,
+    backgroundColor: COLORS.surfaceRaised,
+    paddingVertical: 10,
+    alignItems: "center",
+    justifyContent: "center",
+    minHeight: 42,
+  },
+  outLabel: {
+    color: COLORS.accentMint,
+    fontWeight: "700",
+    fontSize: 13,
+    letterSpacing: 0.15,
+  },
+});
+
+function ChainGradientButton({
+  label,
+  onPress,
+  disabled,
+  compact,
+}: {
+  label: string;
+  onPress: () => void;
+  disabled?: boolean;
+  compact?: boolean;
+}) {
+  return (
+    <Pressable
+      onPress={onPress}
+      disabled={disabled}
+      style={({ pressed }) => [
+        compact ? chainStyles.gradWrapSm : chainStyles.gradWrap,
+        disabled && { opacity: 0.48 },
+        pressed && !disabled && { opacity: 0.92 },
+      ]}
+    >
+      <LinearGradient
+        colors={[...GRADIENT_CTA]}
+        locations={[...GRADIENT_CTA_LOCATIONS]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={compact ? chainStyles.gradInnerSm : chainStyles.gradInner}
+      >
+        <Text style={compact ? chainStyles.gradLabelSm : chainStyles.gradLabel}>{label}</Text>
+      </LinearGradient>
+    </Pressable>
+  );
+}
+
+function ChainOutlineButton({
+  label,
+  onPress,
+  disabled,
+}: {
+  label: string;
+  onPress: () => void;
+  disabled?: boolean;
+}) {
+  return (
+    <Pressable
+      onPress={onPress}
+      disabled={disabled}
+      style={({ pressed }) => [
+        chainStyles.outWrap,
+        disabled && { opacity: 0.48 },
+        pressed && !disabled && { opacity: 0.9 },
+      ]}
+    >
+      <LinearGradient
+        colors={[...GRADIENT_CTA]}
+        locations={[...GRADIENT_CTA_LOCATIONS]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={chainStyles.outRing}
+      >
+        <View style={chainStyles.outFill}>
+          <Text style={chainStyles.outLabel}>{label}</Text>
+        </View>
+      </LinearGradient>
+    </Pressable>
+  );
+}
 
 function tierColor(tier: string | undefined) {
   const t = (tier || "").toLowerCase();
@@ -155,7 +289,10 @@ export function DealDetailScreen({ route }: Props) {
 
       const res = await voiceContract(dealId);
       if (!res.audio_base64) {
-        setErr(res.note || "No audio — set ELEVENLABS_API_KEY on the API.");
+        setErr(
+          res.note ||
+            "No audio — add ELEVENLABS_API_KEY to backend/.env and restart the API.",
+        );
         return;
       }
       const b64 = res.audio_base64;
@@ -266,8 +403,17 @@ export function DealDetailScreen({ route }: Props) {
               <Switch value={includeChain} onValueChange={setIncludeChain} />
             </View>
 
-            <View style={styles.solBox}>
+            <View style={styles.solShell}>
+              <LinearGradient
+                colors={[...GRADIENT_SOLANA_BAR]}
+                locations={[0, 0.5, 1]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+                style={styles.solAccent}
+              />
+              <View style={styles.solBody}>
               <Text style={styles.solTitle}>Solana (devnet)</Text>
+              <Text style={styles.solEyebrow}>PDAs · explorers</Text>
               <Text style={styles.mono}>{bundle.solana.escrow_pubkey}</Text>
               <View style={styles.linkRow}>
                 <Pressable onPress={() => Linking.openURL(bundle.solana.explorer_escrow)}>
@@ -282,10 +428,20 @@ export function DealDetailScreen({ route }: Props) {
                   {JSON.stringify(bundle.solana.chain, null, 2).slice(0, 800)}
                 </Text>
               ) : null}
+              </View>
             </View>
 
-            <View style={styles.onChainBox}>
+            <View style={styles.onChainShell}>
+              <LinearGradient
+                colors={[...GRADIENT_SOLANA_BAR]}
+                locations={[0, 0.5, 1]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+                style={styles.onChainAccent}
+              />
+              <View style={styles.onChainBody}>
               <Text style={styles.solTitle}>On-chain escrow</Text>
+              <Text style={styles.onChainEyebrow}>SOLANA · DEVNET</Text>
               <Text style={styles.onChainMeta}>
                 PDA status: {escrowStatus ?? "—"} · fund SOL on devnet first.
               </Text>
@@ -296,32 +452,28 @@ export function DealDetailScreen({ route }: Props) {
                 </Text>
               ) : null}
 
-              <Pressable
-                style={[styles.ocBtn, (chainBusy || !canBuyerOps) && { opacity: 0.5 }]}
+              <ChainGradientButton
+                label="1 · Initialize"
                 disabled={chainBusy || !canBuyerOps}
                 onPress={() =>
                   void runChain(() =>
                     runInitialize(wallet.connection, wallet.primary!, bundle),
                   )
                 }
-              >
-                <Text style={styles.ocBtnTxt}>1 · Initialize</Text>
-              </Pressable>
+              />
 
-              <Pressable
-                style={[styles.ocBtn, (chainBusy || !canBuyerOps) && { opacity: 0.5 }]}
+              <ChainGradientButton
+                label="2 · Deposit lamports"
                 disabled={chainBusy || !canBuyerOps}
                 onPress={() =>
                   void runChain(() =>
                     runDeposit(wallet.connection, wallet.primary!, bundle),
                   )
                 }
-              >
-                <Text style={styles.ocBtnTxt}>2 · Deposit lamports</Text>
-              </Pressable>
+              />
 
-              <Pressable
-                style={[styles.ocBtn, (chainBusy || !canRelease) && { opacity: 0.5 }]}
+              <ChainGradientButton
+                label="Release (buyer + seller keys)"
                 disabled={chainBusy || !canRelease}
                 onPress={() =>
                   void runChain(() =>
@@ -333,45 +485,30 @@ export function DealDetailScreen({ route }: Props) {
                     ),
                   )
                 }
-              >
-                <Text style={styles.ocBtnTxt}>Release (buyer + seller keys)</Text>
-              </Pressable>
+              />
 
-              <Pressable
-                style={[
-                  styles.ocBtnOutline,
-                  (chainBusy || !disputeSignerBuyer) && { opacity: 0.5 },
-                ]}
+              <ChainOutlineButton
+                label="Dispute (buyer)"
                 disabled={chainBusy || !disputeSignerBuyer}
                 onPress={() =>
                   void runChain(() =>
                     runOpenDispute(wallet.connection, disputeSignerBuyer!, bundle),
                   )
                 }
-              >
-                <Text style={styles.ocBtnTxtB}>Dispute (buyer)</Text>
-              </Pressable>
+              />
 
-              <Pressable
-                style={[
-                  styles.ocBtnOutline,
-                  (chainBusy || !disputeSignerSeller) && { opacity: 0.5 },
-                ]}
+              <ChainOutlineButton
+                label="Dispute (seller)"
                 disabled={chainBusy || !disputeSignerSeller}
                 onPress={() =>
                   void runChain(() =>
                     runOpenDispute(wallet.connection, disputeSignerSeller!, bundle),
                   )
                 }
-              >
-                <Text style={styles.ocBtnTxtB}>Dispute (seller)</Text>
-              </Pressable>
+              />
 
-              <Pressable
-                style={[
-                  styles.ocBtnOutline,
-                  (chainBusy || !canResolve) && { opacity: 0.5 },
-                ]}
+              <ChainOutlineButton
+                label="Resolve → seller (arbiter)"
                 disabled={chainBusy || !canResolve}
                 onPress={() =>
                   void runChain(() =>
@@ -383,15 +520,10 @@ export function DealDetailScreen({ route }: Props) {
                     ),
                   )
                 }
-              >
-                <Text style={styles.ocBtnTxtB}>Resolve → seller (arbiter)</Text>
-              </Pressable>
+              />
 
-              <Pressable
-                style={[
-                  styles.ocBtnOutline,
-                  (chainBusy || !canResolve) && { opacity: 0.5 },
-                ]}
+              <ChainOutlineButton
+                label="Resolve → buyer refund (arbiter)"
                 disabled={chainBusy || !canResolve}
                 onPress={() =>
                   void runChain(() =>
@@ -403,30 +535,25 @@ export function DealDetailScreen({ route }: Props) {
                     ),
                   )
                 }
-              >
-                <Text style={styles.ocBtnTxtB}>Resolve → buyer refund (arbiter)</Text>
-              </Pressable>
+              />
 
               {chainBusy ? (
                 <ActivityIndicator style={{ marginTop: 10 }} color={COLORS.accentMint} />
               ) : null}
+              </View>
             </View>
 
             <View style={styles.actions}>
-              <Pressable
-                style={[styles.primary, busy && { opacity: 0.6 }]}
+              <ChainGradientButton
+                label="Analyze chat (AI)"
                 disabled={busy}
                 onPress={() => void runAnalyze()}
-              >
-                <Text style={styles.primaryTxt}>Analyze chat (AI)</Text>
-              </Pressable>
-              <Pressable
-                style={[styles.outline, busy && { opacity: 0.6 }]}
+              />
+              <ChainOutlineButton
+                label="Voice contract"
                 disabled={busy}
                 onPress={() => void playVoice()}
-              >
-                <Text style={styles.outlineTxt}>Voice contract</Text>
-              </Pressable>
+              />
             </View>
 
             <Text style={styles.chatTitle}>Messages</Text>
@@ -448,13 +575,12 @@ export function DealDetailScreen({ route }: Props) {
                 placeholderTextColor={COLORS.textFaint}
                 multiline
               />
-              <Pressable
-                style={[styles.send, busy && { opacity: 0.6 }]}
+              <ChainGradientButton
+                compact
+                label="Send"
                 disabled={busy}
                 onPress={() => void send()}
-              >
-                <Text style={styles.sendTxt}>Send</Text>
-              </Pressable>
+              />
             </View>
             {err ? <Text style={styles.error}>{err}</Text> : null}
             {busy ? (
@@ -499,15 +625,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   label: { fontWeight: "600", color: COLORS.textMuted },
-  solBox: {
-    marginTop: 12,
-    padding: 12,
-    backgroundColor: COLORS.surfaceRaised,
-    borderRadius: LAYOUT.cardRadius,
-    borderWidth: 1,
-    borderColor: COLORS.borderSubtle,
-  },
-  solTitle: { fontWeight: "700", marginBottom: 6, color: COLORS.text },
+  solTitle: { fontWeight: "700", marginBottom: 2, color: COLORS.text },
   mono: {
     fontFamily: Platform.select({ ios: "Menlo", android: "monospace", default: "monospace" }),
     fontSize: 11,
@@ -521,50 +639,51 @@ const styles = StyleSheet.create({
     color: COLORS.textFaint,
     fontFamily: Platform.select({ ios: "Menlo", android: "monospace", default: "monospace" }),
   },
-  onChainBox: {
-    marginTop: 14,
-    padding: 12,
-    backgroundColor: COLORS.surfaceMuted,
+  solShell: {
+    marginTop: 12,
     borderRadius: LAYOUT.cardRadius,
+    overflow: "hidden",
     borderWidth: 1,
-    borderColor: COLORS.borderSubtle,
-    gap: 8,
+    borderColor: COLORS.glassBorder,
   },
-  onChainMeta: { fontSize: 12, color: COLORS.textMuted, marginBottom: 4 },
-  warn: { fontSize: 12, color: COLORS.warn, marginBottom: 6 },
-  ocBtn: {
-    backgroundColor: COLORS.accentPurple,
-    paddingVertical: 10,
-    borderRadius: 10,
-    alignItems: "center",
-  },
-  ocBtnTxt: { color: COLORS.textOnGradient, fontWeight: "700", fontSize: 13 },
-  ocBtnOutline: {
-    borderWidth: 1,
-    borderColor: COLORS.accentMint,
-    paddingVertical: 10,
-    borderRadius: 10,
-    alignItems: "center",
+  solAccent: { height: 4, width: "100%" },
+  solBody: {
+    padding: 12,
     backgroundColor: COLORS.surfaceRaised,
   },
-  ocBtnTxtB: { color: COLORS.accentMint, fontWeight: "700", fontSize: 13 },
+  solEyebrow: {
+    fontSize: 10,
+    fontWeight: "700",
+    letterSpacing: 1.8,
+    color: COLORS.accentLilac,
+    marginBottom: 8,
+    textTransform: "uppercase" as const,
+  },
+  onChainShell: {
+    marginTop: 14,
+    borderRadius: LAYOUT.cardRadius,
+    overflow: "hidden",
+    borderWidth: 1,
+    borderColor: COLORS.tabBarBorder,
+  },
+  onChainAccent: { height: 4, width: "100%" },
+  onChainBody: {
+    padding: 12,
+    gap: 10,
+    backgroundColor: COLORS.surfaceMuted,
+  },
+  onChainEyebrow: {
+    fontSize: 10,
+    fontWeight: "800",
+    letterSpacing: 2,
+    color: COLORS.accentMint,
+    marginTop: -2,
+    marginBottom: 4,
+    textTransform: "uppercase" as const,
+  },
+  onChainMeta: { fontSize: 12, color: COLORS.textMuted, marginBottom: 2 },
+  warn: { fontSize: 12, color: COLORS.warn, marginBottom: 2 },
   actions: { marginTop: 14, gap: 10 },
-  primary: {
-    backgroundColor: COLORS.accentPurple,
-    paddingVertical: 12,
-    borderRadius: 12,
-    alignItems: "center",
-  },
-  primaryTxt: { color: COLORS.textOnGradient, fontWeight: "700" },
-  outline: {
-    borderWidth: 1,
-    borderColor: COLORS.accentMint,
-    paddingVertical: 12,
-    borderRadius: 12,
-    alignItems: "center",
-    backgroundColor: COLORS.surfaceRaised,
-  },
-  outlineTxt: { color: COLORS.accentMint, fontWeight: "700" },
   chatTitle: { marginTop: 20, fontWeight: "700", fontSize: 16, color: COLORS.text },
   senderRow: {
     marginTop: 8,
@@ -593,14 +712,6 @@ const styles = StyleSheet.create({
     textAlignVertical: "top",
     color: COLORS.text,
   },
-  send: {
-    alignSelf: "flex-end",
-    backgroundColor: COLORS.accentMint,
-    paddingHorizontal: 18,
-    paddingVertical: 10,
-    borderRadius: 10,
-  },
-  sendTxt: { color: COLORS.bg, fontWeight: "800" },
   bubble: {
     marginHorizontal: 16,
     marginTop: 10,
