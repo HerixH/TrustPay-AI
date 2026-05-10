@@ -104,6 +104,9 @@ export async function voiceContract(dealId: string) {
     audio_base64: string | null;
     script: string;
     note?: string;
+    /** Present when TTS failed but a key was configured (debug production). */
+    elevenlabs_http_status?: number;
+    elevenlabs_detail?: string | null;
   }>(`/api/deals/${encodeURIComponent(dealId)}/voice-contract`, {
     method: "POST",
   });

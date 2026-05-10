@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>TrustPay AI — Privacy</title>
+  <style>
+    body { font-family: system-ui, sans-serif; max-width: 42rem; margin: 2rem auto; padding: 0 1rem; line-height: 1.55; color: #111; }
+    h1 { font-size: 1.35rem; }
+    h2 { font-size: 1.05rem; margin-top: 1.5rem; }
+    p, li { font-size: 0.95rem; }
+    .muted { color: #555; font-size: 0.85rem; }
+  </style>
+</head>
+<body>
+  <h1>Privacy policy — TrustPay AI</h1>
+  <p class="muted">Chain Minds · Last updated: 2026-05-09</p>
+
+  <p>
+    This policy describes how the TrustPay AI application and its companion backend (“Services”) handle information.
+    TrustPay AI is experimental software for demos and submissions; it is not offered as a regulated financial service.
+  </p>
+
+  <h2>What we collect and store</h2>
+  <ul>
+    <li><strong>Deal records:</strong> On-chain escrow uses Solana wallet addresses you choose when creating or joining a deal (buyer, seller, arbiter), plus amounts and program identifiers our backend stores to coordinate the experience.</li>
+    <li><strong>Chat messages:</strong> Message content you send through the app is stored on our API server (SQLite) with sender identifiers consistent with how you use the app.</li>
+    <li><strong>Risk analysis results:</strong> When you run “Analyze,” our server scores conversation context and may store summaries or structured signals linked to the deal.</li>
+    <li><strong>Wallet linking (mobile):</strong> Wallet adapter flows handle signing on your device; our backend receives addresses only when your usage sends them (for example as buyer/seller/arbiter strings).</li>
+  </ul>
+
+  <h2>Optional third-party processing</h2>
+  <ul>
+    <li>If configured by the operator, <strong>OpenAI</strong> may receive conversation text solely to enrich risk scoring.</li>
+    <li>If configured, <strong>ElevenLabs</strong> may receive script text to generate optional voice audio.</li>
+    <li>The app interacts with <strong>Solana RPC endpoints</strong> you or we configure; those providers see typical blockchain queries.</li>
+  </ul>
+
+  <h2>Security</h2>
+  <p>
+    Transport uses HTTPS where deployed correctly. The TrustPay API is designed so your signing keys remain with your wallet;
+    our backend does not hold Solana private keys.
+  </p>
+
+  <h2>Retention</h2>
+  <p>
+    Data remains while the hosted SQLite database persists (typically until cleared by redeploy or operator maintenance).
+    We do not promise indefinite retention or deletion tooling in demo deployments.
+  </p>
+
+  <h2>Children</h2>
+  <p>The Services are not directed at children under 13.</p>
+
+  <h2>Contact</h2>
+  <p>
+    For privacy questions about this deployment, contact the team operating this instance (Chain Minds / submission maintainer)
+    through channels listed on your app listing or repository.
+  </p>
+
+  <p class="muted">
+    This document is provided for transparency in hackathon and demo submissions. It is not legal advice; consult counsel before production launch.
+  </p>
+</body>
+</html>

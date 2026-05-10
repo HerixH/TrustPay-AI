@@ -294,9 +294,13 @@ export function DealDetailScreen({ route }: Props) {
 
       const res = await voiceContract(dealId);
       if (!res.audio_base64) {
+        const dbg =
+          res.elevenlabs_http_status != null || res.elevenlabs_detail
+            ? ` ElevenLabs: HTTP ${res.elevenlabs_http_status ?? "?"}${res.elevenlabs_detail ? ` (${res.elevenlabs_detail})` : ""}.`
+            : "";
         setErr(
-          res.note ||
-            "No audio — add ELEVENLABS_API_KEY to backend/.env and restart the API.",
+          (res.note ||
+            "No audio — add ELEVENLABS_API_KEY to backend/.env and restart the API.") + dbg,
         );
         return;
       }
