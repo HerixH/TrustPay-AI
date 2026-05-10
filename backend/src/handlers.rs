@@ -389,14 +389,27 @@ pub async fn voice_contract(
                 "audio_base64": audio_base64,
                 "script": script,
             }))),
-            Err(e) => {
-                tracing::warn!(error = %e, "ElevenLabs TTS failed; returning script only");
+            Err(fail) => {
+                tracing::warn!(
+                    http_status = fail.http_status,
+                    detail = ?fail.detail_status,
+                    "ElevenLabs TTS failed; returning script only"
+                );
+                let note = if fail.http_status == 402
+                    || fail.detail_status.as_deref() == Some("payment_required")
+                {
+                    "ElevenLabs requires billing for text-to-speech (HTTP 402 payment_required). Add a payment method or buy credits at elevenlabs.io - your API key is fine. Script is below."
+                } else {
+                    "Voice audio could not be generated (invalid key, quota, or ElevenLabs outage). Script is below - add a valid ELEVENLABS_API_KEY on the server if you need MP3."
+                };
                 Ok(Json(json!({
                     "mime": null,
                     "deal_id": id,
                     "audio_base64": serde_json::Value::Null,
                     "script": script,
-                    "note": "Voice audio could not be generated (invalid key, quota, or ElevenLabs outage). Script is below — add a valid ELEVENLABS_API_KEY on the server if you need MP3.",
+                    "note": note,
+                    "elevenlabs_http_status": fail.http_status,
+                    "elevenlabs_detail": fail.detail_status,
                 })))
             }
         }
