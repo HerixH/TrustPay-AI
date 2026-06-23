@@ -47,6 +47,22 @@ export type DealBundle = {
   };
 };
 
+export type ActivityItem = {
+  id: string;
+  kind: "deal_created" | "message" | "risk_analyzed";
+  deal_id: string;
+  deal_label: string;
+  title: string;
+  detail: string;
+  tone: "good" | "warn" | "bad" | "neutral";
+  tier?: string;
+  created_at: number;
+};
+
+export async function listActivity(limit = 50): Promise<ActivityItem[]> {
+  return handle(`/api/activity?limit=${limit}`);
+}
+
 export async function listDeals(): Promise<DealRow[]> {
   return handle("/api/deals");
 }

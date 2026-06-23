@@ -268,6 +268,142 @@ async fn analyze_marks_scam_chat_as_high_tier() {
 }
 
 #[tokio::test]
+async fn activity_feed_hides_duplicate_low_risk_scans() {
+    let tmp = tempfile::NamedTempFile::new().expect("temp db");
+    let app = test_app(&tmp);
+
+    let res = app
+        .clone()
+        .oneshot(
+            Request::builder()
+                .method("POST")
+                .uri("/api/deals")
+                .header(CONTENT_TYPE, "application/json")
+                .body(Body::from(sample_create_body().to_string()))
+                .unwrap(),
+        )
+        .await
+        .unwrap();
+    let body = res.into_body().collect().await.unwrap().to_bytes();
+    let created: Value = serde_json::from_slice(&body).unwrap();
+    let id = created["id"].as_str().expect("deal id");
+
+    for _ in 0..2 {
+        let res = app
+            .clone()
+            .oneshot(
+                Request::builder()
+                    .method("POST")
+                    .uri(format!("/api/deals/{id}/analyze"))
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        assert_eq!(res.status(), StatusCode::OK);
+    }
+
+    let res = app
+        .oneshot(
+            Request::builder()
+                .method("GET")
+                .uri("/api/activity?limit=20")
+                .body(Body::empty())
+                .unwrap(),
+        )
+        .await
+        .unwrap();
+    assert_eq!(res.status(), StatusCode::OK);
+    let feed: Vec<Value> = serde_json::from_slice(
+        &res.into_body().collect().await.unwrap().to_bytes(),
+    )
+    .unwrap();
+    assert_eq!(feed.len(), 1);
+    assert_eq!(feed[0]["kind"], "deal_created");
+    assert!(
+        !feed
+            .iter()
+            .any(|e| e["kind"].as_str() == Some("risk_analyzed")),
+        "low-risk scans should not appear in the live feed"
+    );
+}
+
+#[tokio::test]
+async fn activity_feed_returns_deal_message_and_risk_events() {
+    let tmp = tempfile::NamedTempFile::new().expect("temp db");
+    let app = test_app(&tmp);
+
+    let res = app
+        .clone()
+        .oneshot(
+            Request::builder()
+                .method("POST")
+                .uri("/api/deals")
+                .header(CONTENT_TYPE, "application/json")
+                .body(Body::from(sample_create_body().to_string()))
+                .unwrap(),
+        )
+        .await
+        .unwrap();
+    let body = res.into_body().collect().await.unwrap().to_bytes();
+    let created: Value = serde_json::from_slice(&body).unwrap();
+    let id = created["id"].as_str().expect("deal id");
+
+    let scam = json!({
+        "sender": "seller",
+        "body": "Please pay outside with a gift card — trust me bro"
+    });
+    let res = app
+        .clone()
+        .oneshot(
+            Request::builder()
+                .method("POST")
+                .uri(format!("/api/deals/{id}/messages"))
+                .header(CONTENT_TYPE, "application/json")
+                .body(Body::from(scam.to_string()))
+                .unwrap(),
+        )
+        .await
+        .unwrap();
+    assert_eq!(res.status(), StatusCode::OK);
+
+    let res = app
+        .clone()
+        .oneshot(
+            Request::builder()
+                .method("POST")
+                .uri(format!("/api/deals/{id}/analyze"))
+                .body(Body::empty())
+                .unwrap(),
+        )
+        .await
+        .unwrap();
+    assert_eq!(res.status(), StatusCode::OK);
+
+    let res = app
+        .oneshot(
+            Request::builder()
+                .method("GET")
+                .uri("/api/activity?limit=20")
+                .body(Body::empty())
+                .unwrap(),
+        )
+        .await
+        .unwrap();
+    assert_eq!(res.status(), StatusCode::OK);
+    let feed: Vec<Value> = serde_json::from_slice(
+        &res.into_body().collect().await.unwrap().to_bytes(),
+    )
+    .unwrap();
+    assert!(feed.len() >= 3);
+    let kinds: Vec<_> = feed.iter().map(|e| e["kind"].as_str().unwrap()).collect();
+    assert!(kinds.contains(&"deal_created"));
+    assert!(kinds.contains(&"message"));
+    assert!(kinds.contains(&"risk_analyzed"));
+    assert_eq!(feed[0]["kind"], "risk_analyzed");
+}
+
+#[tokio::test]
 async fn voice_contract_without_eleven_returns_script_json() {
     let tmp = tempfile::NamedTempFile::new().expect("temp db");
     let app = test_app(&tmp);

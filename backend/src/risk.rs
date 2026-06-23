@@ -2,7 +2,7 @@ use anyhow::{anyhow, Result};
 use reqwest::Client;
 use serde_json::json;
 
-const SCAM_KEYWORDS: &[&str] = &[
+pub const SCAM_KEYWORDS: &[&str] = &[
     "pay outside",
     "whatsapp only",
     "telegram only",
@@ -14,6 +14,15 @@ const SCAM_KEYWORDS: &[&str] = &[
     "fake",
     "urgent payment",
 ];
+
+pub fn scam_keyword_hits(text: &str) -> Vec<&'static str> {
+    let lowered = text.to_lowercase();
+    SCAM_KEYWORDS
+        .iter()
+        .copied()
+        .filter(|k| lowered.contains(k))
+        .collect()
+}
 
 pub async fn score_transcript(
     http: &Client,

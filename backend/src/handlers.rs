@@ -44,6 +44,11 @@ pub struct IncludeChainQuery {
 }
 
 #[derive(Deserialize)]
+pub struct ActivityQuery {
+    limit: Option<usize>,
+}
+
+#[derive(Deserialize)]
 pub struct DealId {
     pub id: String,
 }
@@ -60,6 +65,203 @@ fn err500(msg: impl Into<String>) -> (StatusCode, String) {
 
 pub async fn health() -> &'static str {
     "ok"
+}
+
+fn deal_label(id: &str) -> String {
+    let short: String = id
+        .chars()
+        .filter(|c| *c != '-')
+        .take(4)
+        .collect::<String>()
+        .to_uppercase();
+    format!("TP-{short}")
+}
+
+fn truncate_detail(text: &str, max: usize) -> String {
+    let t = text.trim();
+    if t.chars().count() <= max {
+        return t.to_string();
+    }
+    let cut: String = t.chars().take(max.saturating_sub(1)).collect();
+    format!("{cut}…")
+}
+
+pub async fn list_activity(
+    State(state): State<AppState>,
+    Query(q): Query<ActivityQuery>,
+) -> ApiResp<Vec<Value>> {
+    let limit = q.limit.unwrap_or(50).clamp(1, 100);
+    let conn = state.db.0.lock().map_err(|e| err500(format!("db lock {e}")))?;
+
+    let mut events: Vec<Value> = Vec::new();
+
+    {
+        let mut stmt = conn
+            .prepare(
+                "SELECT id, amount_lamports, created_at FROM deals ORDER BY created_at DESC LIMIT ?1",
+            )
+            .map_err(|e| err500(format!("{e}")))?;
+        let rows = stmt
+            .query_map([limit as i64], |r| {
+                Ok((
+                    r.get::<_, String>(0)?,
+                    r.get::<_, i64>(1)?,
+                    r.get::<_, i64>(2)?,
+                ))
+            })
+            .map_err(|e| err500(format!("{e}")))?;
+        for row in rows {
+            let (id, amount_lamports, created_at) =
+                row.map_err(|e| err500(format!("{e}")))?;
+            let label = deal_label(&id);
+            events.push(json!({
+                "id": format!("deal:{id}"),
+                "kind": "deal_created",
+                "deal_id": id,
+                "deal_label": label,
+                "title": "User initiated a deal",
+                "detail": format!("Escrow configured · Deal #{label} · {amount_lamports} lamports"),
+                "tone": "good",
+                "created_at": created_at,
+            }));
+        }
+    }
+
+    {
+        let mut stmt = conn
+            .prepare(
+                "SELECT m.id, m.deal_id, m.sender, m.body, m.created_at
+                 FROM messages m
+                 ORDER BY m.created_at DESC, m.id DESC
+                 LIMIT ?1",
+            )
+            .map_err(|e| err500(format!("{e}")))?;
+        let rows = stmt
+            .query_map([limit as i64], |r| {
+                Ok((
+                    r.get::<_, i64>(0)?,
+                    r.get::<_, String>(1)?,
+                    r.get::<_, String>(2)?,
+                    r.get::<_, String>(3)?,
+                    r.get::<_, i64>(4)?,
+                ))
+            })
+            .map_err(|e| err500(format!("{e}")))?;
+        for row in rows {
+            let (msg_id, deal_id, sender, body, created_at) =
+                row.map_err(|e| err500(format!("{e}")))?;
+            let label = deal_label(&deal_id);
+            let hits = risk::scam_keyword_hits(&body);
+            let (title, detail, tone) = if !hits.is_empty() {
+                (
+                    format!("{} message flagged", sender),
+                    format!(
+                        "Matched risky phrases: {} · Deal #{label}",
+                        hits.join(", ")
+                    ),
+                    "warn",
+                )
+            } else {
+                (
+                    format!("New message from {sender}"),
+                    format!("{} · Deal #{label}", truncate_detail(&body, 96)),
+                    "neutral",
+                )
+            };
+            events.push(json!({
+                "id": format!("message:{msg_id}"),
+                "kind": "message",
+                "deal_id": deal_id,
+                "deal_label": label,
+                "title": title,
+                "detail": detail,
+                "tone": tone,
+                "created_at": created_at,
+            }));
+        }
+    }
+
+    {
+        let mut stmt = conn
+            .prepare(
+                "SELECT r.id, r.deal_id, r.tier, r.rationale, r.created_at
+                 FROM risk_events r
+                 INNER JOIN (
+                   SELECT deal_id, MAX(id) AS max_id
+                   FROM risk_events
+                   GROUP BY deal_id
+                 ) latest ON r.id = latest.max_id
+                 WHERE r.tier != 'low'
+                 ORDER BY r.created_at DESC, r.id DESC
+                 LIMIT ?1",
+            )
+            .map_err(|e| err500(format!("{e}")))?;
+        let rows = stmt
+            .query_map([limit as i64], |r| {
+                Ok((
+                    r.get::<_, i64>(0)?,
+                    r.get::<_, String>(1)?,
+                    r.get::<_, String>(2)?,
+                    r.get::<_, String>(3)?,
+                    r.get::<_, i64>(4)?,
+                ))
+            })
+            .map_err(|e| err500(format!("{e}")))?;
+        for row in rows {
+            let (risk_id, deal_id, tier, rationale, created_at) =
+                row.map_err(|e| err500(format!("{e}")))?;
+            let label = deal_label(&deal_id);
+            let (title, detail, tone) = match tier.as_str() {
+                "high" => (
+                    "AI: scam risk flagged",
+                    format!(
+                        "{} · auto-hold engaged · Deal #{label}",
+                        truncate_detail(&rationale, 72)
+                    ),
+                    "warn",
+                ),
+                "medium" => (
+                    "Funds remain protected",
+                    format!(
+                        "Release blocked until review / dispute path · Deal #{label}"
+                    ),
+                    "neutral",
+                ),
+                _ => (
+                    "Risk scan clear",
+                    format!(
+                        "{} · Deal #{label}",
+                        truncate_detail(&rationale, 72)
+                    ),
+                    "good",
+                ),
+            };
+            events.push(json!({
+                "id": format!("risk:{risk_id}"),
+                "kind": "risk_analyzed",
+                "deal_id": deal_id,
+                "deal_label": label,
+                "title": title,
+                "detail": detail,
+                "tone": tone,
+                "tier": tier,
+                "created_at": created_at,
+            }));
+        }
+    }
+
+    events.sort_by(|a, b| {
+        let ta = a["created_at"].as_i64().unwrap_or(0);
+        let tb = b["created_at"].as_i64().unwrap_or(0);
+        tb.cmp(&ta).then_with(|| {
+            let ia = a["id"].as_str().unwrap_or("");
+            let ib = b["id"].as_str().unwrap_or("");
+            ib.cmp(ia)
+        })
+    });
+    events.truncate(limit);
+
+    Ok(Json(events))
 }
 
 pub async fn list_deals(State(state): State<AppState>) -> ApiResp<Vec<Value>> {

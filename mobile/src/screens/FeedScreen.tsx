@@ -1,74 +1,33 @@
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
+import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
-import { useEffect, useMemo, useState } from 'react';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useCallback, useMemo, useState } from 'react';
+import {
+  ActivityIndicator,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { AppHeader } from '../components/AppHeader';
 import { GlassCard } from '../components/GlassCard';
 import { LiveHeader } from '../components/LiveHeader';
+import { listActivity, type ActivityItem } from '../api';
 import type { RootTabParamList } from '../navigation/types';
 import { screenScroll } from '../styles/screenScroll';
 import { COLORS, LAYOUT } from '../theme';
 
 type Props = BottomTabScreenProps<RootTabParamList, 'Live'>;
 
-type Tone = 'good' | 'warn' | 'bad' | 'neutral';
+type Tone = ActivityItem['tone'];
 
-type FeedItem = {
-  id: string;
-  title: string;
-  detail: string;
-  time: string;
-  tone: Tone;
-};
-
-const TEMPLATES: Omit<FeedItem, 'id' | 'time'>[] = [
-  {
-    title: 'User initiated a deal',
-    detail: 'Buyer funded escrow · Deal #TP-1204',
-    tone: 'good',
-  },
-  {
-    title: 'Seller message flagged',
-    detail: 'Urgency + off-platform cue · risk elevated',
-    tone: 'warn',
-  },
-  {
-    title: 'AI: scam risk flagged',
-    detail: 'Chat + behavior model · auto-hold engaged',
-    tone: 'warn',
-  },
-  {
-    title: 'Funds remain protected',
-    detail: 'Release blocked until review / dispute path',
-    tone: 'neutral',
-  },
-  {
-    title: 'Voice contract check',
-    detail: 'Step confirmation via voice (ElevenLabs)',
-    tone: 'neutral',
-  },
-  {
-    title: 'Dispute ticket opened',
-    detail: 'Evidence window · 48h SLA (demo)',
-    tone: 'bad',
-  },
-  {
-    title: 'Legit deal: funds released',
-    detail: 'Rules satisfied · seller payout queued',
-    tone: 'good',
-  },
-];
-
-function makeItem(): FeedItem {
-  const t = TEMPLATES[Math.floor(Math.random() * TEMPLATES.length)];
-  const now = new Date();
-  return {
-    id: `${now.getTime()}-${Math.random().toString(36).slice(2, 7)}`,
-    time: now.toLocaleTimeString(undefined, { hour12: false }),
-    ...t,
-  };
+function formatTime(unixSeconds: number): string {
+  return new Date(unixSeconds * 1000).toLocaleTimeString(undefined, {
+    hour12: false,
+  });
 }
 
 function toneAccent(tone: Tone): string {
@@ -86,19 +45,37 @@ function toneAccent(tone: Tone): string {
 
 export function FeedScreen({ navigation }: Props) {
   const tabBarHeight = useBottomTabBarHeight();
-  const [items, setItems] = useState<FeedItem[]>(() =>
-    Array.from({ length: 6 }, () => makeItem()),
-  );
+  const [items, setItems] = useState<ActivityItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    const id = setInterval(() => {
-      setItems((prev) => [makeItem(), ...prev].slice(0, 14));
-    }, 3200);
-    return () => clearInterval(id);
+  const load = useCallback(async () => {
+    try {
+      setError(null);
+      const next = await listActivity(50);
+      setItems(next);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Could not load activity');
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
+  useFocusEffect(
+    useCallback(() => {
+      void load();
+      const id = setInterval(() => {
+        void load();
+      }, 5000);
+      return () => clearInterval(id);
+    }, [load]),
+  );
+
   const liveCount = useMemo(
-    () => `${items.length} events in buffer`,
+    () =>
+      items.length === 0
+        ? 'No events yet'
+        : `${items.length} live event${items.length === 1 ? '' : 's'}`,
     [items.length],
   );
 
@@ -132,6 +109,31 @@ export function FeedScreen({ navigation }: Props) {
             </View>
           </View>
 
+          {loading && items.length === 0 ? (
+            <View style={styles.stateBox}>
+              <ActivityIndicator color={COLORS.textMuted} />
+              <Text style={styles.stateText}>Loading live activity…</Text>
+            </View>
+          ) : null}
+
+          {error ? (
+            <View style={styles.stateBox}>
+              <Text style={styles.errorText}>{error}</Text>
+              <Pressable onPress={() => void load()} style={styles.retryBtn}>
+                <Text style={styles.retryText}>Retry</Text>
+              </Pressable>
+            </View>
+          ) : null}
+
+          {!loading && !error && items.length === 0 ? (
+            <View style={styles.stateBox}>
+              <Text style={styles.stateText}>
+                No activity yet. Create a deal, send chat messages, or run Analyze
+                from a deal room to populate this feed.
+              </Text>
+            </View>
+          ) : null}
+
           <View style={styles.list}>
             {items.map((it) => (
               <GlassCard key={it.id} innerStyle={styles.cardInner}>
@@ -146,7 +148,9 @@ export function FeedScreen({ navigation }: Props) {
                     <Text style={styles.cardTitle}>{it.title}</Text>
                     <Text style={styles.cardDetail}>{it.detail}</Text>
                   </View>
-                  <Text style={styles.cardTime}>{it.time}</Text>
+                  <Text style={styles.cardTime}>
+                    {formatTime(it.created_at)}
+                  </Text>
                 </View>
               </GlassCard>
             ))}
@@ -205,6 +209,37 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     letterSpacing: 0.15,
     flexShrink: 1,
+  },
+  stateBox: {
+    alignItems: 'center',
+    gap: 10,
+    marginBottom: 16,
+    paddingHorizontal: 8,
+  },
+  stateText: {
+    color: COLORS.textMuted,
+    fontSize: 13,
+    lineHeight: 19,
+    textAlign: 'center',
+  },
+  errorText: {
+    color: COLORS.danger,
+    fontSize: 13,
+    lineHeight: 19,
+    textAlign: 'center',
+  },
+  retryBtn: {
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 999,
+    backgroundColor: COLORS.surfaceMuted,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: COLORS.borderSubtle,
+  },
+  retryText: {
+    color: COLORS.text,
+    fontSize: 12,
+    fontWeight: '700',
   },
   list: {
     gap: 10,
